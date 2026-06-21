@@ -11,13 +11,13 @@ import { toast } from 'sonner'
 
 type BillingCycle = 'monthly' | 'annual' | 'lifetime'
 
-const CURRENCIES: { value: Currency; flag: string; label: string }[] = [
-  { value: 'GBP', flag: '🇬🇧', label: 'GBP £' },
-  { value: 'USD', flag: '🇺🇸', label: 'USD $' },
-  { value: 'CAD', flag: '🇨🇦', label: 'CAD CA$' },
+const CURRENCIES: { value: Currency; flag: string }[] = [
+  { value: 'GBP', flag: '🇬🇧' },
+  { value: 'USD', flag: '🇺🇸' },
+  { value: 'CAD', flag: '🇨🇦' },
 ]
 
-const COMPARISON_FEATURES = [
+const COMPARISON: { label: string; free: boolean | string; solo: boolean | string; studio: boolean | string; agency: boolean | string }[] = [
   { label: 'Transactions/month', free: '50', solo: '500', studio: '2,000', agency: '5,000' },
   { label: 'Users', free: '1', solo: '1', studio: '5', agency: '15' },
   { label: 'FINN AI CFO', free: true, solo: true, studio: true, agency: true },
@@ -35,12 +35,10 @@ export default function PricingPage() {
   const [currency, setCurrency] = useState<Currency>('GBP')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-
   const IS_FOUNDING = true
 
   async function handleSelect(tier: Tier) {
     if (tier === 'free') { router.push('/signup'); return }
-
     setLoading(true)
     try {
       const res = await fetch('/api/stripe/checkout', {
@@ -53,7 +51,6 @@ export default function PricingPage() {
       if (data.url) window.location.href = data.url
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to start checkout'
-      // If not authenticated, redirect to signup
       if (msg.includes('Unauthorized')) { router.push('/signup'); return }
       toast.error(msg)
     } finally {
@@ -61,18 +58,13 @@ export default function PricingPage() {
     }
   }
 
-  const CellValue = ({ val }: { val: boolean | string }) => {
-    if (typeof val === 'boolean') {
-      return val
-        ? <Check size={14} className="text-cyan mx-auto" />
-        : <X size={14} className="text-textDim mx-auto" />
-    }
-    return <span className="text-text text-xs font-rajdhani">{val}</span>
-  }
+  const Cell = ({ val }: { val: boolean | string }) =>
+    typeof val === 'boolean'
+      ? val ? <Check size={14} className="text-cyan mx-auto" /> : <X size={14} className="text-textDim mx-auto" />
+      : <span className="text-text text-xs font-rajdhani">{val}</span>
 
   return (
     <div className="min-h-screen">
-      {/* Nav */}
       <nav className="border-b border-border px-6 py-4 flex items-center justify-between">
         <Link href="/" className="font-orbitron text-xl text-cyan tracking-[0.2em]">BVI</Link>
         <div className="flex items-center gap-4">
@@ -82,24 +74,21 @@ export default function PricingPage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-16">
-        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="font-orbitron text-3xl md:text-4xl text-text mb-3">CHOOSE YOUR INTELLIGENCE TIER</h1>
           <p className="text-textMuted font-rajdhani text-lg">Scale from solo freelancer to full agency</p>
         </div>
 
-        {/* Founding alert */}
         {IS_FOUNDING && (
-          <div className="border border-yellow/30 bg-yellow/5 p-4 mb-8 flex items-center gap-3 animate-pulse-glow">
+          <div className="border border-yellow/30 bg-yellow/5 p-4 mb-8 flex items-center gap-3">
             <Zap size={18} className="text-yellow flex-shrink-0" />
             <div>
               <p className="font-orbitron text-xs text-yellow">FOUNDING MEMBER PRICES ACTIVE</p>
-              <p className="text-textMuted text-xs font-rajdhani mt-0.5">Limited spots remaining — lock in your rate before we launch publicly</p>
+              <p className="text-textMuted text-xs font-rajdhani mt-0.5">Limited spots remaining — lock in your rate before public launch</p>
             </div>
           </div>
         )}
 
-        {/* Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
           <BillingToggle value={billingCycle} onChange={setBillingCycle} />
           <div className="flex border border-border">
@@ -115,23 +104,12 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Tier cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
           {(['free', 'solo', 'studio', 'agency'] as Tier[]).map(t => (
-            <TierCard
-              key={t}
-              tierId={t}
-              billingCycle={billingCycle}
-              currency={currency}
-              isFounding={IS_FOUNDING}
-              onSelect={handleSelect}
-              loading={loading}
-              highlighted={t === 'solo'}
-            />
+            <TierCard key={t} tierId={t} billingCycle={billingCycle} currency={currency} isFounding={IS_FOUNDING} onSelect={handleSelect} loading={loading} highlighted={t === 'solo'} />
           ))}
         </div>
 
-        {/* Comparison table */}
         <div className="mb-16">
           <h2 className="font-orbitron text-lg text-text mb-6 text-center">FEATURE COMPARISON</h2>
           <div className="overflow-x-auto">
@@ -145,13 +123,13 @@ export default function PricingPage() {
                 </tr>
               </thead>
               <tbody>
-                {COMPARISON_FEATURES.map((row, i) => (
+                {COMPARISON.map((row, i) => (
                   <tr key={i} className="border-b border-border/40 hover:bg-surface2/30 transition-colors">
                     <td className="py-3 pr-4 text-textMuted text-xs font-rajdhani">{row.label}</td>
-                    <td className="py-3 px-2 text-center"><CellValue val={row.free} /></td>
-                    <td className="py-3 px-2 text-center"><CellValue val={row.solo} /></td>
-                    <td className="py-3 px-2 text-center"><CellValue val={row.studio} /></td>
-                    <td className="py-3 px-2 text-center"><CellValue val={row.agency} /></td>
+                    <td className="py-3 px-2 text-center"><Cell val={row.free} /></td>
+                    <td className="py-3 px-2 text-center"><Cell val={row.solo} /></td>
+                    <td className="py-3 px-2 text-center"><Cell val={row.studio} /></td>
+                    <td className="py-3 px-2 text-center"><Cell val={row.agency} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -159,7 +137,6 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Trust section */}
         <div className="flex flex-wrap items-center justify-center gap-8 border-t border-border pt-8 text-textMuted text-xs font-orbitron">
           <span>🔒 SECURED BY STRIPE</span>
           <span>🤖 POWERED BY CLAUDE AI</span>

@@ -12,7 +12,7 @@ export function BillingToggle({ value, onChange }: { value: BillingCycle; onChan
   ]
 
   return (
-    <div className="flex border border-border inline-flex">
+    <div className="flex border border-border">
       {options.map(opt => (
         <button
           key={opt.value}

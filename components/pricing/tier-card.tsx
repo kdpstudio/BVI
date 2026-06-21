@@ -15,11 +15,10 @@ interface TierCardProps {
   currency: Currency
   isFounding: boolean
   onSelect: (tier: Tier) => void
-  loading?: boolean // reserved for future use
+  loading?: boolean
   highlighted?: boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function TierCard({ tierId, billingCycle, currency, isFounding, onSelect, loading, highlighted }: TierCardProps) {
   const tier = PRICING_TIERS.find(t => t.id === tierId)
   if (!tier) return null
@@ -27,19 +26,19 @@ export function TierCard({ tierId, billingCycle, currency, isFounding, onSelect,
   const symbol = CURRENCY_SYMBOLS[currency]
 
   const getDisplayPrice = () => {
-    if (tierId === 'free') return { price: '0', period: 'forever' }
+    if (tierId === 'free') return { price: '0', period: 'forever', regular: undefined }
 
     const gbpKey = billingCycle === 'monthly' ? 'monthlyGBP' : billingCycle === 'annual' ? 'annualGBP' : 'lifetimeGBP'
     const foundingKey = billingCycle === 'monthly' ? 'foundingMonthlyGBP' : billingCycle === 'annual' ? 'foundingAnnualGBP' : 'foundingLifetimeGBP'
 
-    const regularGBP = tier[gbpKey]
-    const foundingGBP = isFounding && tier[foundingKey] ? tier[foundingKey]! : regularGBP
+    const regularGBP = tier[gbpKey as keyof typeof tier] as number
+    const foundingGBP = isFounding && tier[foundingKey as keyof typeof tier] ? tier[foundingKey as keyof typeof tier] as number : regularGBP
     const displayGBP = isFounding ? foundingGBP : regularGBP
     const displayPrice = convertPrice(displayGBP, currency)
     const regularPrice = convertPrice(regularGBP, currency)
 
     const period = billingCycle === 'monthly' ? '/mo' : billingCycle === 'annual' ? '/yr' : ' once'
-    return { price: displayPrice.toString(), period, regular: isFounding ? regularPrice.toString() : undefined }
+    return { price: displayPrice.toString(), period, regular: isFounding && foundingGBP !== regularGBP ? regularPrice.toString() : undefined }
   }
 
   const { price, period, regular } = getDisplayPrice()
@@ -47,7 +46,7 @@ export function TierCard({ tierId, billingCycle, currency, isFounding, onSelect,
   const accentColor = tierId === 'free' ? 'border-border' : tierId === 'solo' ? 'border-cyan/40' : tierId === 'studio' ? 'border-purple/40' : 'border-yellow/40'
   const glowColor = tierId === 'solo' ? 'shadow-[0_0_20px_rgba(0,200,255,0.1)]' : tierId === 'studio' ? 'shadow-[0_0_20px_rgba(123,47,255,0.1)]' : tierId === 'agency' ? 'shadow-[0_0_20px_rgba(255,204,0,0.1)]' : ''
   const textColor = tierId === 'solo' ? 'text-cyan' : tierId === 'studio' ? 'text-purple' : tierId === 'agency' ? 'text-yellow' : 'text-textMuted'
-  const btnVariant = tierId === 'studio' ? 'purple' : tierId === 'agency' ? 'ghost' : 'cyan'
+  const btnVariant = tierId === 'studio' ? 'purple' : 'cyan'
 
   return (
     <div className={cn(
@@ -56,7 +55,7 @@ export function TierCard({ tierId, billingCycle, currency, isFounding, onSelect,
       highlighted && 'ring-1 ring-cyan'
     )}>
       {highlighted && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan text-background font-orbitron text-xs px-3 py-0.5">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan text-background font-orbitron text-xs px-3 py-0.5 whitespace-nowrap">
           MOST POPULAR
         </div>
       )}
@@ -80,7 +79,7 @@ export function TierCard({ tierId, billingCycle, currency, isFounding, onSelect,
       )}
 
       <p className="text-textMuted text-xs font-rajdhani mb-4">
-        {tier.transactions === 50 ? '50' : tier.transactions.toLocaleString()} transactions/mo · {tier.users === 1 ? '1 user' : `Up to ${tier.users} users`}
+        {tier.transactions.toLocaleString()} transactions/mo · {tier.users === 1 ? '1 user' : `Up to ${tier.users} users`}
       </p>
 
       <ul className="flex flex-col gap-2 mb-6 flex-1">
@@ -96,6 +95,7 @@ export function TierCard({ tierId, billingCycle, currency, isFounding, onSelect,
         variant={tierId === 'free' ? 'ghost' : btnVariant}
         fullWidth
         onClick={() => onSelect(tierId)}
+        disabled={loading}
       >
         {tierId === 'free' ? 'START FREE' : `ACTIVATE ${tier.name}`}
       </CyberButton>
