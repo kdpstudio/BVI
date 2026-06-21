@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ categorised })
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to categorise' }, { status: 500 })
   }
 }

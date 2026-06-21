@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ imported: toInsert.length, flagged: toInsert.filter(t => t.is_flagged).length, errors: [] })
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
 }

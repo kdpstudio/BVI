@@ -12,7 +12,7 @@ interface TransactionTableProps {
 
 const PAGE_SIZE = 25
 
-export function TransactionTable({ transactions, onRefresh: _onRefresh }: TransactionTableProps) {
+export function TransactionTable({ transactions }: TransactionTableProps) {
   const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'flagged'>('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)

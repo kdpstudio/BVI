@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       expensesChange: prev.expenses > 0 ? ((cur.expenses - prev.expenses) / prev.expenses) * 100 : 0,
       netChange: prev.net > 0 ? ((cur.net - prev.net) / prev.net) * 100 : 0,
     })
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch P&L' }, { status: 500 })
   }
 }

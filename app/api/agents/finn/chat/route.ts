@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     return new Response(readable, {
       headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Transfer-Encoding': 'chunked' },
     })
-  } catch (_error) {
+  } catch {
     return new Response('Failed', { status: 500 })
   }
 }
