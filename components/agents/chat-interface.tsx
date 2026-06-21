@@ -65,6 +65,12 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
         body: JSON.stringify({ message: text, history }),
       })
 
+      if (res.status === 403) {
+        const err = await res.json()
+        setMessages(prev => [...prev, { role: 'assistant', content: `**Access restricted.** ${err.message || 'Upgrade your plan to access this agent.'}\n\n[View pricing →](/pricing)`, timestamp: new Date().toLocaleTimeString() }])
+        setStreaming(false)
+        return
+      }
       if (!res.ok) throw new Error('Failed to get response')
 
       const reader = res.body?.getReader()

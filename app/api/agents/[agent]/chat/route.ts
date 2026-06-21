@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { getAgent } from '@/lib/agents/config'
-import { Agent } from '@/types'
+import { canAgentAccess } from '@/lib/pricing'
+import { Agent, Tier } from '@/types'
 
 const anthropic = new Anthropic()
 
@@ -50,6 +51,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return new Response('Unauthorized', { status: 401 })
+
+    const { data: profile } = await supabase.from('users').select('tier').eq('id', user.id).single()
+    const tier = (profile?.tier || 'free') as Tier
+    if (!canAgentAccess(tier, agent)) {
+      return new Response(JSON.stringify({ error: 'upgrade_required', message: `${agent} requires a higher tier. Visit /pricing to upgrade.` }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+    }
 
     const { message, history = [] } = await request.json()
     const contextString = await buildContext(agent, user.id, supabase)
