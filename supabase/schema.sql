@@ -15,6 +15,8 @@ create table public.users (
   billing_cycle text check (billing_cycle in ('monthly', 'annual', 'lifetime')) default 'monthly',
   stripe_customer_id text,
   stripe_subscription_id text,
+  payment_status text default 'active',
+  onboarded boolean default false,
   created_at timestamptz default now()
 );
 
