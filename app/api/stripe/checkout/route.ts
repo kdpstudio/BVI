@@ -4,11 +4,21 @@ import { createClient } from '@/lib/supabase/server'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' })
 
-// Stripe Price IDs — founding member pricing
+// Stripe Price IDs
 const PRICE_IDS: Record<string, Record<string, string>> = {
-  solo:   { monthly: 'price_1Tpq2IRxxgLHRQXXLo32Vgki', annual: 'price_1TpqpcRxxgLHRQXXqbsApGMx', lifetime: 'price_1TprUNRxxgLHRQXXm7rt4uj3' },
-  studio: { monthly: 'price_1TprAcRxxgLHRQXXBvFtBZcf', annual: 'price_1TprAcRxxgLHRQXXuxvetUC5', lifetime: 'price_1TprT3RxxgLHRQXXsRbw3klW' },
-  agency: { monthly: 'price_1TprEYRxxgLHRQXXG5w9OL5P', annual: 'price_1TprEYRxxgLHRQXX04VZbnRy', lifetime: 'price_1TprR2RxxgLHRQXXCrIvqMmd' },
+  // Founding member — lifetime only
+  solo_lifetime:    { lifetime: 'price_1TprUNRxxgLHRQXXm7rt4uj3' },
+  studio_lifetime:  { lifetime: 'price_1TprT3RxxgLHRQXXsRbw3klW' },
+  agency_lifetime:  { lifetime: 'price_1TprR2RxxgLHRQXXCrIvqMmd' },
+  // Regular subscriptions
+  solo:   { monthly: 'price_1Tpq2IRxxgLHRQXXLo32Vgki', annual: 'price_1TpqpcRxxgLHRQXX8ahbX2Du' },
+  studio: { monthly: 'price_1TprAcRxxgLHRQXXBvFtBZcf', annual: 'price_1TprAcRxxgLHRQXXlNbRcVHH' },
+  agency: { monthly: 'price_1TprEYRxxgLHRQXXG5w9OL5P', annual: 'price_1TprEYRxxgLHRQXXAH2Yf13A' },
+}
+
+function getPriceId(tier: string, billingCycle: string): string | undefined {
+  if (billingCycle === 'lifetime') return PRICE_IDS[`${tier}_lifetime`]?.lifetime
+  return PRICE_IDS[tier]?.[billingCycle]
 }
 
 export async function POST(request: NextRequest) {
@@ -22,7 +32,7 @@ export async function POST(request: NextRequest) {
       billingCycle: 'monthly' | 'annual' | 'lifetime'
     }
 
-    const priceId = PRICE_IDS[tier]?.[billingCycle]
+    const priceId = getPriceId(tier, billingCycle)
     if (!priceId) return NextResponse.json({ error: 'Invalid tier or billing cycle' }, { status: 400 })
 
     const { data: profile } = await supabase.from('users').select('stripe_customer_id').eq('id', user.id).single()
