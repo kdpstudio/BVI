@@ -4,12 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Zap, Check, X } from 'lucide-react'
-import { BillingToggle } from '@/components/pricing/billing-toggle'
-import { TierCard } from '@/components/pricing/tier-card'
 import { Currency, Tier } from '@/types'
+import { CyberButton } from '@/components/ui/cyber-button'
+import { convertPrice, CURRENCY_SYMBOLS } from '@/lib/pricing/config'
+import { PRICING_TIERS } from '@/lib/pricing'
 import { toast } from 'sonner'
 
-type BillingCycle = 'monthly' | 'annual' | 'lifetime'
+type BillingCycle = 'monthly' | 'annual'
 
 const CURRENCIES: { value: Currency; flag: string }[] = [
   { value: 'GBP', flag: '🇬🇧' },
@@ -30,21 +31,105 @@ const COMPARISON: { label: string; free: boolean | string; solo: boolean | strin
   { label: 'Priority Support', free: false, solo: false, studio: true, agency: true },
 ]
 
+const TIER_STYLES: Record<string, { accent: string; glow: string; text: string; btn: 'cyan' | 'purple' | 'ghost' }> = {
+  free:   { accent: 'border-border',    glow: '',                                            text: 'text-textMuted', btn: 'ghost' },
+  solo:   { accent: 'border-cyan/40',   glow: 'shadow-[0_0_20px_rgba(0,200,255,0.1)]',      text: 'text-cyan',      btn: 'cyan' },
+  studio: { accent: 'border-purple/40', glow: 'shadow-[0_0_20px_rgba(123,47,255,0.1)]',     text: 'text-purple',    btn: 'purple' },
+  agency: { accent: 'border-yellow/40', glow: 'shadow-[0_0_20px_rgba(255,204,0,0.1)]',      text: 'text-yellow',    btn: 'cyan' },
+}
+
+const SPOTS: Record<string, number> = { solo: 50, studio: 25, agency: 10 }
+
+function FoundingCard({ tierId, currency, onSelect, loading }: { tierId: Tier; currency: Currency; onSelect: (t: Tier, cycle: 'lifetime') => void; loading: boolean }) {
+  const tier = PRICING_TIERS.find(t => t.id === tierId)
+  if (!tier || tierId === 'free') return null
+  const s = TIER_STYLES[tierId]
+  const symbol = CURRENCY_SYMBOLS[currency]
+  const gbp = tier.foundingLifetimeGBP || tier.lifetimeGBP
+  const price = convertPrice(gbp, currency)
+  const spots = SPOTS[tierId]
+
+  return (
+    <div className={`bg-surface border ${s.accent} ${s.glow} p-6 flex flex-col relative hover:scale-[1.01] transition-all duration-200`}>
+      <div className={`text-xs font-orbitron mb-3 px-2 py-0.5 border inline-block w-fit ${s.text} ${s.accent}`}>
+        FOUNDING · {spots} SPOTS ONLY
+      </div>
+      <div className={`font-orbitron text-xl mb-1 ${s.text}`}>{tier.name}</div>
+      <div className="flex items-baseline gap-1 mb-1">
+        <span className="font-orbitron text-3xl text-text">{symbol}{price.toLocaleString()}</span>
+        <span className="text-textMuted text-sm font-rajdhani"> once</span>
+      </div>
+      <p className="text-textMuted text-xs font-rajdhani mb-1">Lifetime access — pay once, own forever</p>
+      <p className="text-textMuted text-xs font-rajdhani mb-4">
+        {tier.transactions.toLocaleString()} transactions/mo · {tier.users === 1 ? '1 user' : `Up to ${tier.users} users`}
+      </p>
+      <ul className="flex flex-col gap-2 mb-6 flex-1">
+        {tier.features.map(f => (
+          <li key={f} className="flex items-start gap-2">
+            <Check size={12} className={`mt-0.5 flex-shrink-0 ${s.text}`} />
+            <span className="text-textMuted text-xs font-rajdhani">{f}</span>
+          </li>
+        ))}
+      </ul>
+      <CyberButton variant={s.btn} fullWidth onClick={() => onSelect(tierId, 'lifetime')} disabled={loading}>
+        CLAIM LIFETIME ACCESS
+      </CyberButton>
+    </div>
+  )
+}
+
+function RegularCard({ tierId, billingCycle, currency, onSelect, loading }: { tierId: Tier; billingCycle: BillingCycle; currency: Currency; onSelect: (t: Tier, cycle: BillingCycle) => void; loading: boolean }) {
+  const tier = PRICING_TIERS.find(t => t.id === tierId)
+  if (!tier) return null
+  const s = TIER_STYLES[tierId]
+  const symbol = CURRENCY_SYMBOLS[currency]
+
+  const getPrice = () => {
+    if (tierId === 'free') return { price: '0', period: 'forever' }
+    const gbp = billingCycle === 'monthly' ? tier.monthlyGBP : tier.annualGBP
+    return { price: convertPrice(gbp, currency).toLocaleString(), period: billingCycle === 'monthly' ? '/mo' : '/yr' }
+  }
+  const { price, period } = getPrice()
+
+  return (
+    <div className={`bg-surface border ${s.accent} ${s.glow} p-6 flex flex-col relative hover:scale-[1.01] transition-all duration-200`}>
+      <div className={`font-orbitron text-xl mb-1 ${s.text}`}>{tier.name}</div>
+      <div className="flex items-baseline gap-1 mb-1">
+        <span className="font-orbitron text-3xl text-text">{symbol}{price}</span>
+        <span className="text-textMuted text-sm font-rajdhani">{period}</span>
+      </div>
+      <p className="text-textMuted text-xs font-rajdhani mb-4">
+        {tierId === 'free' ? 'No credit card required' : `${tier.transactions.toLocaleString()} transactions/mo · ${tier.users === 1 ? '1 user' : `Up to ${tier.users} users`}`}
+      </p>
+      <ul className="flex flex-col gap-2 mb-6 flex-1">
+        {tier.features.map(f => (
+          <li key={f} className="flex items-start gap-2">
+            <Check size={12} className={`mt-0.5 flex-shrink-0 ${s.text}`} />
+            <span className="text-textMuted text-xs font-rajdhani">{f}</span>
+          </li>
+        ))}
+      </ul>
+      <CyberButton variant={tierId === 'free' ? 'ghost' : s.btn} fullWidth onClick={() => onSelect(tierId, billingCycle)} disabled={loading}>
+        {tierId === 'free' ? 'START FREE' : `ACTIVATE ${tier.name}`}
+      </CyberButton>
+    </div>
+  )
+}
+
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
   const [currency, setCurrency] = useState<Currency>('GBP')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const IS_FOUNDING = true
 
-  async function handleSelect(tier: Tier) {
+  async function handleSelect(tier: Tier, cycle: BillingCycle | 'lifetime') {
     if (tier === 'free') { router.push('/signup'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier, billingCycle, isFounding: IS_FOUNDING }),
+        body: JSON.stringify({ tier, billingCycle: cycle }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -79,37 +164,51 @@ export default function PricingPage() {
           <p className="text-textMuted font-rajdhani text-lg">Scale from solo freelancer to full agency</p>
         </div>
 
-        {IS_FOUNDING && (
+        {/* Founding Member Section */}
+        <div className="mb-16">
           <div className="border border-yellow/30 bg-yellow/5 p-4 mb-8 flex items-center gap-3">
             <Zap size={18} className="text-yellow flex-shrink-0" />
             <div>
-              <p className="font-orbitron text-xs text-yellow">FOUNDING MEMBER PRICES ACTIVE</p>
-              <p className="text-textMuted text-xs font-rajdhani mt-0.5">Limited spots remaining — lock in your rate before public launch</p>
+              <p className="font-orbitron text-xs text-yellow">FOUNDING MEMBER — LIFETIME ACCESS</p>
+              <p className="text-textMuted text-xs font-rajdhani mt-0.5">Pay once, own BVI forever. Limited spots — gone when sold out.</p>
+            </div>
+            <div className="ml-auto flex items-center gap-4">
+              {CURRENCIES.map(c => (
+                <button key={c.value} onClick={() => setCurrency(c.value)} className={`font-orbitron text-xs transition-colors ${currency === c.value ? 'text-yellow' : 'text-textMuted hover:text-text'}`}>
+                  {c.flag} {c.value}
+                </button>
+              ))}
             </div>
           </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
-          <BillingToggle value={billingCycle} onChange={setBillingCycle} />
-          <div className="flex border border-border">
-            {CURRENCIES.map(c => (
-              <button
-                key={c.value}
-                onClick={() => setCurrency(c.value)}
-                className={`px-4 py-2.5 font-orbitron text-xs transition-all ${currency === c.value ? 'bg-surface2 text-text' : 'text-textMuted hover:text-text'}`}
-              >
-                {c.flag} {c.value}
-              </button>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {(['solo', 'studio', 'agency'] as Tier[]).map(t => (
+              <FoundingCard key={t} tierId={t} currency={currency} onSelect={handleSelect} loading={loading} />
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
-          {(['free', 'solo', 'studio', 'agency'] as Tier[]).map(t => (
-            <TierCard key={t} tierId={t} billingCycle={billingCycle} currency={currency} isFounding={IS_FOUNDING} onSelect={handleSelect} loading={loading} highlighted={t === 'solo'} />
-          ))}
+        {/* Regular Subscription Section */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-orbitron text-lg text-text">REGULAR PLANS</h2>
+            <div className="flex border border-border">
+              <button onClick={() => setBillingCycle('monthly')} className={`px-4 py-2 font-orbitron text-xs transition-all ${billingCycle === 'monthly' ? 'bg-cyan text-background' : 'text-textMuted hover:text-text'}`}>
+                MONTHLY
+              </button>
+              <button onClick={() => setBillingCycle('annual')} className={`px-4 py-2 font-orbitron text-xs transition-all relative ${billingCycle === 'annual' ? 'bg-cyan text-background' : 'text-textMuted hover:text-text'}`}>
+                ANNUAL
+                <span className="absolute -top-2 -right-1 text-[9px] px-1 font-orbitron bg-cyan/20 text-cyan">SAVE 37%</span>
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {(['free', 'solo', 'studio', 'agency'] as Tier[]).map(t => (
+              <RegularCard key={t} tierId={t} billingCycle={billingCycle} currency={currency} onSelect={handleSelect} loading={loading} />
+            ))}
+          </div>
         </div>
 
+        {/* Comparison table */}
         <div className="mb-16">
           <h2 className="font-orbitron text-lg text-text mb-6 text-center">FEATURE COMPARISON</h2>
           <div className="overflow-x-auto">
