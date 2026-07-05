@@ -156,6 +156,16 @@ export async function POST(request: NextRequest) {
         break
       }
 
+      // ─── Checkout abandoned / expired ─────────────────────────────────────
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const { userId, tier, billingCycle } = session.metadata || {}
+        if (!userId) break
+        // No tier change — user never paid. Just log so you can follow up.
+        await logEvent(supabase, userId, 'Checkout abandoned', `${tier} ${billingCycle} — session expired`)
+        break
+      }
+
       // ─── Lifetime / one-off payment succeeded ──────────────────────────────
       case 'payment_intent.succeeded': {
         const pi = event.data.object as Stripe.PaymentIntent
