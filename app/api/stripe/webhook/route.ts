@@ -37,7 +37,12 @@ async function getUserIdFromCustomer(customerId: string): Promise<string | null>
   return (customer as Stripe.Customer).metadata?.userId ?? null
 }
 
-async function logEvent(supabase: ReturnType<typeof getServiceClient>, userId: string, action: string, result: string) {
+async function logEvent(
+  supabase: ReturnType<typeof getServiceClient>,
+  userId: string,
+  action: string,
+  result: string
+) {
   await supabase.from('agent_logs').insert({ user_id: userId, agent: 'SYSTEM', action, result })
 }
 
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
 
-      // ─── Payment completed (subscription or one-off) ───────────────────────
+      // ─── Checkout completed ────────────────────────────────────────────────
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         const { userId, tier, billingCycle } = session.metadata || {}
@@ -75,14 +80,22 @@ export async function POST(request: NextRequest) {
         break
       }
 
-      // ─── Recurring invoice paid (renewal) ──────────────────────────────────
+      // ─── Checkout abandoned / expired ─────────────────────────────────────
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const { userId, tier, billingCycle } = session.metadata || {}
+        if (!userId) break
+        await logEvent(supabase, userId, 'Checkout abandoned', `${tier} ${billingCycle} — session expired`)
+        break
+      }
+
+      // ─── Invoice paid (renewal or first charge) ────────────────────────────
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice
         if (!invoice.customer) break
         const userId = await getUserIdFromCustomer(invoice.customer as string)
         if (!userId) break
 
-        // Resolve tier from the first line item's price
         const priceId = invoice.lines?.data?.[0]?.price?.id
         const resolved = priceId ? tierFromPriceId(priceId) : null
 
@@ -91,11 +104,11 @@ export async function POST(request: NextRequest) {
           ...(resolved ? { tier: resolved.tier, billing_cycle: resolved.cycle } : {}),
         }).eq('id', userId)
 
-        await logEvent(supabase, userId, 'Invoice paid', `Amount: £${((invoice.amount_paid || 0) / 100).toFixed(2)}`)
+        await logEvent(supabase, userId, 'Invoice paid', `£${((invoice.amount_paid || 0) / 100).toFixed(2)}`)
         break
       }
 
-      // ─── Payment failed (card declined, expired, etc.) ─────────────────────
+      // ─── Invoice payment failed ────────────────────────────────────────────
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
         if (!invoice.customer) break
@@ -103,8 +116,6 @@ export async function POST(request: NextRequest) {
         if (!userId) break
 
         const attemptCount = invoice.attempt_count || 1
-
-        // After 3 failed attempts Stripe will cancel — we flag it here
         await supabase.from('users').update({
           payment_status: attemptCount >= 3 ? 'past_due_final' : 'past_due',
         }).eq('id', userId)
@@ -113,7 +124,57 @@ export async function POST(request: NextRequest) {
         break
       }
 
-      // ─── Subscription updated (upgrade, downgrade, renewal) ────────────────
+      // ─── Invoice finalization failed (address/tax ID issue) ───────────────
+      case 'invoice.finalization_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        if (!invoice.customer) break
+        const userId = await getUserIdFromCustomer(invoice.customer as string)
+        if (!userId) break
+        await logEvent(supabase, userId, 'Invoice finalization failed', invoice.last_finalization_error?.message || 'unknown error')
+        break
+      }
+
+      // ─── Invoice marked uncollectible (Stripe gave up) ────────────────────
+      case 'invoice.marked_uncollectible': {
+        const invoice = event.data.object as Stripe.Invoice
+        if (!invoice.customer) break
+        const userId = await getUserIdFromCustomer(invoice.customer as string)
+        if (!userId) break
+
+        const { data: user } = await supabase.from('users').select('billing_cycle').eq('id', userId).single()
+        if (user?.billing_cycle !== 'lifetime') {
+          await supabase.from('users').update({
+            tier: 'free',
+            billing_cycle: null,
+            stripe_subscription_id: null,
+            payment_status: 'uncollectible',
+          }).eq('id', userId)
+        }
+        await logEvent(supabase, userId, 'Invoice uncollectible', 'Stripe gave up collecting — downgraded to free')
+        break
+      }
+
+      // ─── Invoice voided ────────────────────────────────────────────────────
+      case 'invoice.voided': {
+        const invoice = event.data.object as Stripe.Invoice
+        if (!invoice.customer) break
+        const userId = await getUserIdFromCustomer(invoice.customer as string)
+        if (!userId) break
+        await logEvent(supabase, userId, 'Invoice voided', `Invoice ${invoice.id} was voided`)
+        break
+      }
+
+      // ─── Upcoming invoice (7 days before renewal) ─────────────────────────
+      case 'invoice.upcoming': {
+        const invoice = event.data.object as Stripe.Invoice
+        if (!invoice.customer) break
+        const userId = await getUserIdFromCustomer(invoice.customer as string)
+        if (!userId) break
+        await logEvent(supabase, userId, 'Renewal upcoming', `£${((invoice.amount_due || 0) / 100).toFixed(2)} due in 7 days`)
+        break
+      }
+
+      // ─── Subscription updated ──────────────────────────────────────────────
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription
         const userId = await getUserIdFromCustomer(sub.customer as string)
@@ -121,8 +182,7 @@ export async function POST(request: NextRequest) {
 
         const priceId = sub.items?.data?.[0]?.price?.id
         const resolved = priceId ? tierFromPriceId(priceId) : null
-
-        const status = sub.status // active, past_due, canceled, unpaid, trialing
+        const status = sub.status
         const isPaused = sub.pause_collection != null
 
         await supabase.from('users').update({
@@ -131,7 +191,7 @@ export async function POST(request: NextRequest) {
           ...(resolved && status === 'active' ? { tier: resolved.tier, billing_cycle: resolved.cycle } : {}),
         }).eq('id', userId)
 
-        await logEvent(supabase, userId, `Subscription ${status}`, resolved ? `${resolved.tier} ${resolved.cycle}` : sub.id)
+        await logEvent(supabase, userId, `Subscription ${isPaused ? 'paused' : status}`, resolved ? `${resolved.tier} ${resolved.cycle}` : sub.id)
         break
       }
 
@@ -141,7 +201,6 @@ export async function POST(request: NextRequest) {
         const userId = await getUserIdFromCustomer(sub.customer as string)
         if (!userId) break
 
-        // Only downgrade to free if not a lifetime customer
         const { data: user } = await supabase.from('users').select('billing_cycle').eq('id', userId).single()
         if (user?.billing_cycle !== 'lifetime') {
           await supabase.from('users').update({
@@ -156,13 +215,43 @@ export async function POST(request: NextRequest) {
         break
       }
 
-      // ─── Checkout abandoned / expired ─────────────────────────────────────
-      case 'checkout.session.expired': {
-        const session = event.data.object as Stripe.Checkout.Session
-        const { userId, tier, billingCycle } = session.metadata || {}
+      // ─── Trial ending in 3 days ────────────────────────────────────────────
+      case 'customer.subscription.trial_will_end': {
+        const sub = event.data.object as Stripe.Subscription
+        const userId = await getUserIdFromCustomer(sub.customer as string)
         if (!userId) break
-        // No tier change — user never paid. Just log so you can follow up.
-        await logEvent(supabase, userId, 'Checkout abandoned', `${tier} ${billingCycle} — session expired`)
+        await logEvent(supabase, userId, 'Trial ending soon', 'Trial ends in 3 days — charge incoming')
+        break
+      }
+
+      // ─── Customer updated (email/card changed in billing portal) ──────────
+      case 'customer.updated': {
+        const customer = event.data.object as Stripe.Customer
+        const userId = customer.metadata?.userId
+        if (!userId) break
+
+        if (customer.email) {
+          await supabase.from('users').update({ email: customer.email }).eq('id', userId)
+        }
+        await logEvent(supabase, userId, 'Customer profile updated', 'Email or billing details changed')
+        break
+      }
+
+      // ─── Customer deleted from Stripe ──────────────────────────────────────
+      case 'customer.deleted': {
+        const customer = event.data.object as Stripe.Customer
+        const userId = customer.metadata?.userId
+        if (!userId) break
+
+        await supabase.from('users').update({
+          tier: 'free',
+          billing_cycle: null,
+          stripe_customer_id: null,
+          stripe_subscription_id: null,
+          payment_status: 'cancelled',
+        }).eq('id', userId)
+
+        await logEvent(supabase, userId, 'Stripe customer deleted', 'Customer record removed from Stripe')
         break
       }
 
@@ -178,31 +267,30 @@ export async function POST(request: NextRequest) {
           payment_status: 'active',
         }).eq('id', userId)
 
-        await logEvent(supabase, userId, `Lifetime payment succeeded`, `${tier} — £${((pi.amount || 0) / 100).toFixed(2)}`)
+        await logEvent(supabase, userId, 'Lifetime payment succeeded', `${tier} — £${((pi.amount || 0) / 100).toFixed(2)}`)
         break
       }
 
-      // ─── Payment intent failed ─────────────────────────────────────────────
+      // ─── One-off payment failed ────────────────────────────────────────────
       case 'payment_intent.payment_failed': {
         const pi = event.data.object as Stripe.PaymentIntent
         const { userId } = pi.metadata || {}
         if (!userId) break
-
         await logEvent(supabase, userId, 'Payment failed', pi.last_payment_error?.message || 'unknown error')
         break
       }
 
-      // ─── Trial ending soon (3 days before) ────────────────────────────────
-      case 'customer.subscription.trial_will_end': {
-        const sub = event.data.object as Stripe.Subscription
-        const userId = await getUserIdFromCustomer(sub.customer as string)
+      // ─── Card automatically updated by bank ───────────────────────────────
+      case 'payment_method.automatically_updated': {
+        const pm = event.data.object as Stripe.PaymentMethod
+        if (!pm.customer) break
+        const userId = await getUserIdFromCustomer(pm.customer as string)
         if (!userId) break
-
-        await logEvent(supabase, userId, 'Trial ending soon', 'Trial ends in 3 days')
+        await logEvent(supabase, userId, 'Payment method auto-updated', 'Card details updated by bank network')
         break
       }
 
-      // ─── Charge disputed ──────────────────────────────────────────────────
+      // ─── Charge disputed (chargeback raised) ──────────────────────────────
       case 'charge.dispute.created': {
         const dispute = event.data.object as Stripe.Dispute
         const charge = await stripe.charges.retrieve(dispute.charge as string)
@@ -211,11 +299,44 @@ export async function POST(request: NextRequest) {
         if (!userId) break
 
         await supabase.from('users').update({ payment_status: 'disputed' }).eq('id', userId)
-        await logEvent(supabase, userId, 'Chargeback raised', `Amount: £${((dispute.amount || 0) / 100).toFixed(2)}`)
+        await logEvent(supabase, userId, 'Chargeback raised', `£${((dispute.amount || 0) / 100).toFixed(2)} — respond in Stripe before deadline`)
         break
       }
 
-      // ─── Refund created ────────────────────────────────────────────────────
+      // ─── Dispute resolved (won or lost) ───────────────────────────────────
+      case 'charge.dispute.closed': {
+        const dispute = event.data.object as Stripe.Dispute
+        const charge = await stripe.charges.retrieve(dispute.charge as string)
+        if (!charge.customer) break
+        const userId = await getUserIdFromCustomer(charge.customer as string)
+        if (!userId) break
+
+        if (dispute.status === 'won') {
+          // Dispute won — restore active status
+          await supabase.from('users').update({ payment_status: 'active' }).eq('id', userId)
+          await logEvent(supabase, userId, 'Dispute won', `£${((dispute.amount || 0) / 100).toFixed(2)} — access restored`)
+        } else {
+          // Dispute lost — keep downgraded (subscription.deleted will have fired)
+          await supabase.from('users').update({ payment_status: 'dispute_lost' }).eq('id', userId)
+          await logEvent(supabase, userId, 'Dispute lost', `£${((dispute.amount || 0) / 100).toFixed(2)} — chargeback accepted`)
+        }
+        break
+      }
+
+      // ─── Fraud warning (before chargeback arrives) ─────────────────────────
+      case 'radar.early_fraud_warning.created': {
+        const warning = event.data.object as Stripe.Radar.EarlyFraudWarning
+        const charge = await stripe.charges.retrieve(warning.charge as string)
+        if (!charge.customer) break
+        const userId = await getUserIdFromCustomer(charge.customer as string)
+        if (!userId) break
+
+        await supabase.from('users').update({ payment_status: 'fraud_warning' }).eq('id', userId)
+        await logEvent(supabase, userId, 'Fraud warning', `Stripe Radar flagged a charge — review before chargeback arrives`)
+        break
+      }
+
+      // ─── Full refund ───────────────────────────────────────────────────────
       case 'charge.refunded': {
         const charge = event.data.object as Stripe.Charge
         if (!charge.customer) break
@@ -227,10 +348,8 @@ export async function POST(request: NextRequest) {
         const isFullRefund = refundedAmount >= totalAmount
 
         if (isFullRefund) {
-          // Full refund — revoke access, downgrade to free
           const { data: user } = await supabase.from('users').select('billing_cycle').eq('id', userId).single()
           if (user?.billing_cycle === 'lifetime') {
-            // Lifetime refund — remove lifetime access entirely
             await supabase.from('users').update({
               tier: 'free',
               billing_cycle: null,
@@ -238,20 +357,16 @@ export async function POST(request: NextRequest) {
               payment_status: 'refunded',
             }).eq('id', userId)
           } else {
-            // Subscription refund — downgrade, Stripe will also send subscription.deleted
-            await supabase.from('users').update({
-              payment_status: 'refunded',
-            }).eq('id', userId)
+            await supabase.from('users').update({ payment_status: 'refunded' }).eq('id', userId)
           }
-          await logEvent(supabase, userId, 'Full refund issued', `£${(refundedAmount / 100).toFixed(2)} refunded — access revoked`)
+          await logEvent(supabase, userId, 'Full refund issued', `£${(refundedAmount / 100).toFixed(2)} — access revoked`)
         } else {
-          // Partial refund — keep access, just log it
-          await logEvent(supabase, userId, 'Partial refund issued', `£${(refundedAmount / 100).toFixed(2)} of £${(totalAmount / 100).toFixed(2)} refunded`)
+          await logEvent(supabase, userId, 'Partial refund issued', `£${(refundedAmount / 100).toFixed(2)} of £${(totalAmount / 100).toFixed(2)}`)
         }
         break
       }
 
-      // ─── Refund updated (e.g. refund failed) ──────────────────────────────
+      // ─── Refund failed ─────────────────────────────────────────────────────
       case 'refund.updated': {
         const refund = event.data.object as Stripe.Refund
         if (refund.status === 'failed' && refund.charge) {
@@ -259,14 +374,23 @@ export async function POST(request: NextRequest) {
           if (!charge.customer) break
           const userId = await getUserIdFromCustomer(charge.customer as string)
           if (!userId) break
-          await logEvent(supabase, userId, 'Refund failed', `Refund of £${((refund.amount || 0) / 100).toFixed(2)} failed — ${refund.failure_reason || 'unknown reason'}`)
+          await logEvent(supabase, userId, 'Refund failed', `£${((refund.amount || 0) / 100).toFixed(2)} — ${refund.failure_reason || 'unknown reason'}`)
         }
+        break
+      }
+
+      // ─── Billing portal opened ─────────────────────────────────────────────
+      case 'billing_portal.session.created': {
+        const session = event.data.object as Stripe.BillingPortal.Session
+        if (!session.customer) break
+        const userId = await getUserIdFromCustomer(session.customer as string)
+        if (!userId) break
+        await logEvent(supabase, userId, 'Billing portal opened', 'User accessed billing portal')
         break
       }
     }
   } catch (err) {
     console.error('Webhook processing error:', err)
-    // Return 200 to prevent Stripe retrying — log the error instead
     return NextResponse.json({ received: true, error: 'Processing error logged' })
   }
 
