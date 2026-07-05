@@ -6,9 +6,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10
 
 // Stripe Price IDs — founding member pricing
 const PRICE_IDS: Record<string, Record<string, string>> = {
-  solo:   { monthly: 'price_1Tpq2IRxxgLHRQXXLo32Vgki', annual: 'price_1TpqpcRxxgLHRQXXqbsApGMx', lifetime: 'price_1TpqpcRxxgLHRQXX8ahbX2Du' },
-  studio: { monthly: 'price_1TprAcRxxgLHRQXXBvFtBZcf', annual: 'price_1TprAcRxxgLHRQXXuxvetUC5', lifetime: 'price_1TprAcRxxgLHRQXXlNbRcVHH' },
-  agency: { monthly: 'price_1TprEYRxxgLHRQXXG5w9OL5P', annual: 'price_1TprEYRxxgLHRQXX04VZbnRy', lifetime: 'price_1TprEYRxxgLHRQXXAH2Yf13A' },
+  solo:   { monthly: 'price_1Tpq2IRxxgLHRQXXLo32Vgki', annual: 'price_1TpqpcRxxgLHRQXXqbsApGMx', lifetime: 'price_1TprUNRxxgLHRQXXm7rt4uj3' },
+  studio: { monthly: 'price_1TprAcRxxgLHRQXXBvFtBZcf', annual: 'price_1TprAcRxxgLHRQXXuxvetUC5', lifetime: 'price_1TprT3RxxgLHRQXXsRbw3klW' },
+  agency: { monthly: 'price_1TprEYRxxgLHRQXXG5w9OL5P', annual: 'price_1TprEYRxxgLHRQXX04VZbnRy', lifetime: 'price_1TprR2RxxgLHRQXXCrIvqMmd' },
 }
 
 export async function POST(request: NextRequest) {

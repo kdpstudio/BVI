@@ -2,15 +2,15 @@ import { Currency } from '@/types'
 
 export const PRICING = {
   solo: {
-    founding: { monthly: 49, annual: 399, lifetime: 499, spots: 50 },
+    founding: { monthly: 49, annual: 399, lifetime: 799, spots: 50 },
     regular:  { monthly: 79, annual: 599, lifetime: 799 }
   },
   studio: {
-    founding: { monthly: 99, annual: 799, lifetime: 999, spots: 25 },
+    founding: { monthly: 99, annual: 799, lifetime: 1499, spots: 25 },
     regular:  { monthly: 149, annual: 1199, lifetime: 1499 }
   },
   agency: {
-    founding: { monthly: 199, annual: 1599, lifetime: 1999, spots: 10 },
+    founding: { monthly: 199, annual: 1599, lifetime: 2999, spots: 10 },
     regular:  { monthly: 249, annual: 1999, lifetime: 2499 }
   }
 }
