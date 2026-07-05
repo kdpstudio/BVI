@@ -204,6 +204,55 @@ export async function POST(request: NextRequest) {
         await logEvent(supabase, userId, 'Chargeback raised', `Amount: £${((dispute.amount || 0) / 100).toFixed(2)}`)
         break
       }
+
+      // ─── Refund created ────────────────────────────────────────────────────
+      case 'charge.refunded': {
+        const charge = event.data.object as Stripe.Charge
+        if (!charge.customer) break
+        const userId = await getUserIdFromCustomer(charge.customer as string)
+        if (!userId) break
+
+        const refundedAmount = charge.amount_refunded || 0
+        const totalAmount = charge.amount || 0
+        const isFullRefund = refundedAmount >= totalAmount
+
+        if (isFullRefund) {
+          // Full refund — revoke access, downgrade to free
+          const { data: user } = await supabase.from('users').select('billing_cycle').eq('id', userId).single()
+          if (user?.billing_cycle === 'lifetime') {
+            // Lifetime refund — remove lifetime access entirely
+            await supabase.from('users').update({
+              tier: 'free',
+              billing_cycle: null,
+              stripe_subscription_id: null,
+              payment_status: 'refunded',
+            }).eq('id', userId)
+          } else {
+            // Subscription refund — downgrade, Stripe will also send subscription.deleted
+            await supabase.from('users').update({
+              payment_status: 'refunded',
+            }).eq('id', userId)
+          }
+          await logEvent(supabase, userId, 'Full refund issued', `£${(refundedAmount / 100).toFixed(2)} refunded — access revoked`)
+        } else {
+          // Partial refund — keep access, just log it
+          await logEvent(supabase, userId, 'Partial refund issued', `£${(refundedAmount / 100).toFixed(2)} of £${(totalAmount / 100).toFixed(2)} refunded`)
+        }
+        break
+      }
+
+      // ─── Refund updated (e.g. refund failed) ──────────────────────────────
+      case 'refund.updated': {
+        const refund = event.data.object as Stripe.Refund
+        if (refund.status === 'failed' && refund.charge) {
+          const charge = await stripe.charges.retrieve(refund.charge as string)
+          if (!charge.customer) break
+          const userId = await getUserIdFromCustomer(charge.customer as string)
+          if (!userId) break
+          await logEvent(supabase, userId, 'Refund failed', `Refund of £${((refund.amount || 0) / 100).toFixed(2)} failed — ${refund.failure_reason || 'unknown reason'}`)
+        }
+        break
+      }
     }
   } catch (err) {
     console.error('Webhook processing error:', err)
