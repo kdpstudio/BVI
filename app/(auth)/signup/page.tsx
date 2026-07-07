@@ -36,6 +36,7 @@ type SignupForm = z.infer<typeof signupSchema>
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false)
+  const [checkEmail, setCheckEmail] = useState('')
   const router = useRouter()
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupForm>({
@@ -57,15 +58,32 @@ export default function SignupPage() {
       city: data.city,
       business_name: data.business_name,
       business_type: data.business_type,
-    })
+    }) as { error?: string; needsEmailConfirm?: boolean }
     if (result.error) {
       toast.error(result.error)
+      setLoading(false)
+      return
+    }
+    if (result.needsEmailConfirm) {
+      setCheckEmail(data.email)
       setLoading(false)
       return
     }
     toast.success('Account activated. Welcome to BVI.')
     router.push('/dashboard')
     router.refresh()
+  }
+
+  if (checkEmail) {
+    return (
+      <div className="bg-surface border border-cyan/30 p-8 shadow-[0_0_20px_rgba(0,200,255,0.1)] text-center">
+        <div className="text-4xl mb-4">✉️</div>
+        <h2 className="font-orbitron text-xl text-cyan mb-2">CHECK YOUR EMAIL</h2>
+        <p className="text-textMuted font-rajdhani text-sm mb-1">Confirmation sent to:</p>
+        <p className="text-text font-mono-tech text-sm mb-4">{checkEmail}</p>
+        <p className="text-textMuted font-rajdhani text-xs">Click the link in the email to activate your account and access BVI.</p>
+      </div>
+    )
   }
 
   return (

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AgentCard } from '@/components/agents/agent-card'
 import { Agent, Tier } from '@/types'
@@ -7,7 +8,8 @@ const AGENTS: Agent[] = ['FINN', 'SAGE', 'ARIA', 'MAX', 'REX']
 export default async function AgentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = await supabase.from('users').select('tier').eq('id', user!.id).single()
+  if (!user) redirect('/login')
+  const { data: profile } = await supabase.from('users').select('tier').eq('id', user.id).single()
   const tier = (profile?.tier || 'free') as Tier
 
   return (

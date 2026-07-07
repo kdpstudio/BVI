@@ -37,7 +37,6 @@ export async function signUp(formData: SignUpData): Promise<ApiResponse<User>> {
   })
   if (error) return { error: error.message }
   if (data.user) {
-    // Update profile with all fields
     await supabase.from('users').upsert({
       id: data.user.id,
       email: formData.email,
@@ -49,7 +48,7 @@ export async function signUp(formData: SignUpData): Promise<ApiResponse<User>> {
       business_type: formData.business_type,
     })
   }
-  return { data: data.user as unknown as User }
+  return { data: data.user as unknown as User, needsEmailConfirm: !data.session }
 }
 
 export async function signOut(): Promise<void> {
