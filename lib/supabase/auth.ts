@@ -1,6 +1,10 @@
 import { createClient } from './client'
 import { ApiResponse, User } from '@/types'
 
+export interface SignUpResult extends ApiResponse<User> {
+  needsEmailConfirm?: boolean
+}
+
 export interface SignUpData {
   email: string
   password: string
@@ -19,7 +23,7 @@ export async function signIn(email: string, password: string): Promise<ApiRespon
   return { data: data.user as unknown as User }
 }
 
-export async function signUp(formData: SignUpData): Promise<ApiResponse<User>> {
+export async function signUp(formData: SignUpData): Promise<SignUpResult> {
   const supabase = createClient()
   const { data, error } = await supabase.auth.signUp({
     email: formData.email,

@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { CyberInput } from '@/components/ui/cyber-input'
 import { CyberButton } from '@/components/ui/cyber-button'
-import { signUp } from '@/lib/supabase/auth'
+import { signUp, SignUpResult } from '@/lib/supabase/auth'
 
 const CURRENCIES: Record<string, string> = { UK: 'GBP', US: 'USD', CA: 'CAD' }
 
@@ -58,7 +58,7 @@ export default function SignupPage() {
       city: data.city,
       business_name: data.business_name,
       business_type: data.business_type,
-    }) as { error?: string; needsEmailConfirm?: boolean }
+    }) as SignUpResult
     if (result.error) {
       toast.error(result.error)
       setLoading(false)
