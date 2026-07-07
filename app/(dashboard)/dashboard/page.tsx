@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { getWeatherEmoji } from '@/lib/weather'
 import { calculateHealthScore } from '@/lib/aria/health'
 import { timeAgo, formatDate } from '@/lib/utils'
+import { HealthRing } from '@/components/dashboard/health-ring'
+import { AgentRoster } from '@/components/dashboard/agent-roster'
 
 const AGENTS: { id: Agent; emoji: string; role: string }[] = [
   { id: 'FINN', emoji: '💰', role: 'AI CFO' },
@@ -130,20 +132,7 @@ export default async function DashboardPage() {
       {/* Section 3 — Agent Roster */}
       <div>
         <h2 className="font-orbitron text-xs text-cyan uppercase tracking-widest mb-3">AGENT ROSTER</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {AGENTS.map(agent => (
-            <div key={agent.id} className="bg-surface border border-border p-4 hover:border-cyan/40 hover:shadow-[0_0_15px_rgba(0,200,255,0.1)] transition-all">
-              <div className="text-3xl mb-2">{agent.emoji}</div>
-              <div className="font-orbitron text-sm text-text mb-0.5">{agent.id}</div>
-              <div className="text-textMuted text-xs font-rajdhani mb-2">{agent.role}</div>
-              <StatusDot status="active" label />
-              <p className="text-textDim text-xs font-rajdhani mt-2 leading-tight line-clamp-2">{agentLastAction[agent.id]}</p>
-              <Link href={`/agents/${agent.id.toLowerCase()}`} className="mt-3 flex items-center text-cyan text-xs font-orbitron hover:text-white transition-colors">
-                ENGAGE →
-              </Link>
-            </div>
-          ))}
-        </div>
+        <AgentRoster agents={AGENTS} lastActions={agentLastAction} />
       </div>
 
       {/* Section 4 — Activity + Health */}
@@ -168,29 +157,7 @@ export default async function DashboardPage() {
 
         <div className="lg:col-span-2">
           <CyberCard variant="purple" title="BUSINESS HEALTH">
-            <div className="flex flex-col items-center py-4">
-              <div className="relative w-28 h-28 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-4 border-purple/30" />
-                <div className="text-center">
-                  <div className="font-orbitron text-3xl text-text">{healthData.score}</div>
-                  <div className="text-textMuted text-xs">/10</div>
-                </div>
-              </div>
-              <p className="text-textMuted text-xs font-orbitron mt-2">Powered by ARIA</p>
-            </div>
-            <div className="flex flex-col gap-2 mt-2">
-              {healthData.breakdown.map(({ label, score, maxScore }) => (
-                <div key={label}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-textMuted font-rajdhani">{label}</span>
-                    <span className="text-text font-orbitron">{score}/{maxScore}</span>
-                  </div>
-                  <div className="h-1 bg-border rounded-full overflow-hidden">
-                    <div className="h-full bg-purple rounded-full" style={{ width: `${(score / maxScore) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <HealthRing score={healthData.score} breakdown={healthData.breakdown} />
           </CyberCard>
         </div>
       </div>
