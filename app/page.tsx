@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { motion, useInView } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
+import { LandingBackground } from '@/components/ui/landing-background'
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 
@@ -25,9 +26,9 @@ const FEATURES = [
 
 const TICKER_ITEMS = [
   'FINN ONLINE', 'SAGE PROCESSING', 'ARIA ACTIVE', 'MAX SCANNING', 'REX READY',
-  'AUTOMATED BOOKKEEPING', 'TAX INTELLIGENCE', 'REVENUE ANALYTICS',
+  'AUTOMATED BOOKKEEPING', 'TAX INTELLIGENCE', 'REVENUE ANALYTICS', 'AGENCY READY', 'FREELANCER READY',
   'FINN ONLINE', 'SAGE PROCESSING', 'ARIA ACTIVE', 'MAX SCANNING', 'REX READY',
-  'AUTOMATED BOOKKEEPING', 'TAX INTELLIGENCE', 'REVENUE ANALYTICS',
+  'AUTOMATED BOOKKEEPING', 'TAX INTELLIGENCE', 'REVENUE ANALYTICS', 'AGENCY READY', 'FREELANCER READY',
 ]
 
 const STEPS = [
@@ -87,6 +88,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: '#020408', color: 'rgba(200,230,255,0.9)' }}>
+      <LandingBackground />
 
       {/* ── NAV ── */}
       <motion.nav
@@ -173,7 +175,7 @@ export default function LandingPage() {
           YOUR AI BACK OFFICE
           <br />
           <span className="relative inline-block" style={{ color: '#00c8ff', textShadow: '0 0 40px rgba(0,200,255,0.5)' }}>
-            FOR FREELANCERS
+            FOR AGENCIES & FREELANCERS
             <motion.span
               className="absolute left-0 bottom-0 h-[3px] bg-cyan"
               initial={{ width: 0 }}
@@ -191,7 +193,7 @@ export default function LandingPage() {
           className="font-rajdhani text-lg mb-10 mx-auto"
           style={{ color: 'rgba(150,190,220,0.7)', maxWidth: '600px', fontSize: '18px' }}
         >
-          Five specialised AI agents handle your finances, tax, strategy, growth, and operations — so you can focus on the work that matters.
+          Five specialised AI agents handle your finances, tax, strategy, growth, and operations — built for agencies and freelancers who mean business.
         </motion.p>
 
         <motion.div
@@ -355,7 +357,7 @@ export default function LandingPage() {
         >
           <div className="font-mono-tech text-[10px] tracking-[4px] mb-3" style={{ color: 'rgba(0,200,255,0.5)' }}>{'// YOUR AI TEAM'}</div>
           <h2 className="font-orbitron text-3xl font-black mb-3" style={{ color: 'rgba(200,230,255,0.95)' }}>FIVE AGENTS. ONE MISSION.</h2>
-          <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>Dedicated intelligence for every part of your business.</p>
+          <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>Dedicated intelligence for every part of your agency or freelance business.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -442,7 +444,7 @@ export default function LandingPage() {
           >
             <div className="font-mono-tech text-[10px] tracking-[4px] mb-3" style={{ color: 'rgba(0,200,255,0.5)' }}>{'// CAPABILITIES'}</div>
             <h2 className="font-orbitron text-3xl font-black mb-3" style={{ color: 'rgba(200,230,255,0.95)' }}>EVERYTHING YOU NEED</h2>
-            <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>The complete back-office stack for modern freelancers and agencies.</p>
+            <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>The complete back-office stack for agencies and freelancers ready to scale.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -481,7 +483,7 @@ export default function LandingPage() {
             animate={statsInView ? { opacity: 1, y: 0 } : {}}
             className="text-center mb-10"
           >
-            <h2 className="font-orbitron text-2xl font-black" style={{ color: 'rgba(200,230,255,0.9)' }}>BUILT FOR FREELANCERS WHO MEAN BUSINESS</h2>
+            <h2 className="font-orbitron text-2xl font-black" style={{ color: 'rgba(200,230,255,0.9)' }}>BUILT FOR AGENCIES & FREELANCERS WHO MEAN BUSINESS</h2>
           </motion.div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[

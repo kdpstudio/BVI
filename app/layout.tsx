@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Orbitron, Rajdhani, Share_Tech_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
-import { CyberBackground } from '@/components/ui/cyber-background'
 import './globals.css'
 
 const orbitron = Orbitron({
@@ -39,7 +38,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${orbitron.variable} ${rajdhani.variable} ${shareTechMono.variable} font-rajdhani`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
-          <CyberBackground />
           {children}
           <Toaster
             theme="dark"
