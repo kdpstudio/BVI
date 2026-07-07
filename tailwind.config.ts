@@ -9,10 +9,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        orbitron: ['var(--font-orbitron)', 'sans-serif'],
+        rajdhani: ['var(--font-rajdhani)', 'sans-serif'],
+        'mono-tech': ['var(--font-mono-tech)', 'Share Tech Mono', 'monospace'],
+      },
       colors: {
         background: '#020408',
-        surface: '#060d14',
-        surface2: '#0a1628',
+        surface: '#060f1a',
+        surface2: '#081220',
         border: '#0d2137',
         borderGlow: '#00c8ff',
         cyan: '#00c8ff',
@@ -22,15 +27,13 @@ const config: Config = {
         purpleDim: '#5a1fcc',
         purpleGlow: 'rgba(123,47,255,0.15)',
         green: '#00ff88',
+        gold: '#ffb800',
+        pink: '#ff2d78',
         red: '#ff3366',
         yellow: '#ffcc00',
-        text: '#e2e8f0',
-        textMuted: '#64748b',
-        textDim: '#334155',
-      },
-      fontFamily: {
-        orbitron: ['Orbitron', 'sans-serif'],
-        rajdhani: ['Rajdhani', 'sans-serif'],
+        text: 'rgba(200,230,255,0.9)',
+        textMuted: 'rgba(100,140,170,0.4)',
+        textDim: 'rgba(150,190,220,0.5)',
       },
       keyframes: {
         scanline: {

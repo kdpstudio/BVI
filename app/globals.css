@@ -1,81 +1,169 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --background: #020408;
-  --surface: #060d14;
+  --surface: #060f1a;
+  --surface2: #081220;
   --cyan: #00c8ff;
+  --cyan-dim: rgba(0,200,255,0.6);
+  --cyan-glow: rgba(0,200,255,0.15);
   --purple: #7b2fff;
+  --green: #00ff88;
+  --gold: #ffb800;
+  --pink: #ff2d78;
+  --border: rgba(0,200,255,0.15);
+  --border-bright: rgba(0,200,255,0.4);
+  --text: rgba(200,230,255,0.9);
+  --text-dim: rgba(150,190,220,0.5);
+  --text-muted: rgba(100,140,170,0.4);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   background-color: #020408;
-  color: #e2e8f0;
+  color: var(--text);
   font-family: 'Rajdhani', sans-serif;
-  background-image:
-    linear-gradient(rgba(0, 200, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 200, 255, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
   min-height: 100vh;
 }
 
-@layer components {
-  .glow-border {
-    border: 1px solid rgba(0, 200, 255, 0.3);
-    box-shadow: 0 0 10px rgba(0, 200, 255, 0.15), inset 0 0 10px rgba(0, 200, 255, 0.05);
+/* Animated grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+  pointer-events: none;
+  animation: gridPulse 8s ease-in-out infinite;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.12) 2px,
+    rgba(0,0,0,0.12) 4px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@layer utilities {
+  .font-mono-tech {
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
   }
 
-  .glow-purple {
-    border: 1px solid rgba(123, 47, 255, 0.3);
-    box-shadow: 0 0 10px rgba(123, 47, 255, 0.15), inset 0 0 10px rgba(123, 47, 255, 0.05);
-  }
-
-  .glass {
-    background: rgba(6, 13, 20, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  .scanline {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .scanline::after {
+  /* Corner decorations */
+  .corner-tl::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(0, 200, 255, 0.1), transparent);
-    animation: scanline 8s linear infinite;
-    pointer-events: none;
+    top: 0; left: 0;
+    width: 12px; height: 12px;
+    border-top: 1px solid var(--cyan);
+    border-left: 1px solid var(--cyan);
+  }
+  .corner-br::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 12px; height: 12px;
+    border-bottom: 1px solid var(--cyan);
+    border-right: 1px solid var(--cyan);
+  }
+  .corner-all {
+    position: relative;
+  }
+  .corner-all::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 12px; height: 12px;
+    border-top: 1px solid var(--cyan);
+    border-left: 1px solid var(--cyan);
+  }
+  .corner-all::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 12px; height: 12px;
+    border-bottom: 1px solid var(--cyan);
+    border-right: 1px solid var(--cyan);
   }
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+/* Metric bar animation */
+@keyframes barLoad {
+  from { width: 0; }
 }
 
-::-webkit-scrollbar-track {
-  background: #020408;
+.bar-animated {
+  animation: barLoad 1.5s ease-out forwards;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #0d2137;
-  border-radius: 2px;
+/* Status badge pulse */
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #00c8ff44;
+.badge-pulse {
+  animation: badgePulse 2s ease-in-out infinite;
 }
+
+/* Status dot blink */
+@keyframes statusBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.status-blink {
+  animation: statusBlink 2s ease-in-out infinite;
+}
+
+/* Topbar scanline animation */
+@keyframes topbarScan {
+  0% { transform: scaleX(0); transform-origin: left; }
+  50% { transform: scaleX(1); transform-origin: left; }
+  50.01% { transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+/* Sidebar glow animation */
+@keyframes sidebarGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Logo pulse */
+@keyframes logoPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(0,200,255,0.2), inset 0 0 10px rgba(0,200,255,0.1); }
+  50% { box-shadow: 0 0 20px rgba(0,200,255,0.5), inset 0 0 20px rgba(0,200,255,0.2); }
+}
+
+/* Fade in up */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #020408; }
+::-webkit-scrollbar-thumb { background: #0d2137; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,200,255,0.3); }

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Orbitron, Rajdhani } from 'next/font/google'
+import { Orbitron, Rajdhani, Share_Tech_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
 import { CyberBackground } from '@/components/ui/cyber-background'
@@ -18,6 +18,13 @@ const rajdhani = Rajdhani({
   display: 'swap',
 })
 
+const shareTechMono = Share_Tech_Mono({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-mono-tech',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'BVI — Black Vault Intelligence',
   description: 'AI-powered back office for freelancers and agencies',
@@ -30,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${orbitron.variable} ${rajdhani.variable} font-rajdhani`}>
+      <body className={`${orbitron.variable} ${rajdhani.variable} ${shareTechMono.variable} font-rajdhani`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
           <CyberBackground />
           {children}
