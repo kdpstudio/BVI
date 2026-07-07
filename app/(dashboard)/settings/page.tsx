@@ -112,7 +112,7 @@ export default function SettingsPage() {
           </div>
           <div className="mb-4">
             <p className="text-xs font-orbitron text-textMuted uppercase tracking-widest mb-1">Current Tier</p>
-            <span className={`text-xs font-orbitron px-3 py-1 uppercase ${profile.tier === 'founder' ? 'text-yellow bg-yellow/10 border border-yellow/30' : profile.tier === 'pro' ? 'text-cyan bg-cyan/10 border border-cyan/30' : profile.tier === 'agency' ? 'text-purple bg-purple/10 border border-purple/30' : 'text-textMuted bg-surface border border-border'}`}>
+            <span className={`text-xs font-orbitron px-3 py-1 uppercase ${profile.tier === 'agency' ? 'text-yellow bg-yellow/10 border border-yellow/30' : profile.tier === 'studio' ? 'text-purple bg-purple/10 border border-purple/30' : profile.tier === 'solo' ? 'text-cyan bg-cyan/10 border border-cyan/30' : 'text-textMuted bg-surface border border-border'}`}>
               {profile.tier}
             </span>
           </div>
@@ -130,7 +130,7 @@ export default function SettingsPage() {
                   {profile.tier === 'free' ? 'Upgrade to unlock all AI agents' : 'Full access to BVI platform'}
                 </p>
               </div>
-              <span className={`text-xs font-orbitron px-3 py-1 uppercase ${profile.tier === 'founder' ? 'text-yellow border border-yellow/30' : 'text-cyan border border-cyan/30'}`}>
+              <span className={`text-xs font-orbitron px-3 py-1 uppercase ${profile.tier !== 'free' ? 'text-cyan border border-cyan/30' : 'text-textMuted border border-border'}`}>
                 {profile.tier === 'free' ? 'FREE' : 'ACTIVE'}
               </span>
             </div>

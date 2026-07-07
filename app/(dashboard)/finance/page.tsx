@@ -21,14 +21,21 @@ interface PLData {
   netChange: number
 }
 
-const MOCK_CHART_DATA = [
-  { month: 'Jan', income: 8200, expenses: 3100 },
-  { month: 'Feb', income: 9400, expenses: 2800 },
-  { month: 'Mar', income: 7800, expenses: 3400 },
-  { month: 'Apr', income: 11200, expenses: 3200 },
-  { month: 'May', income: 10800, expenses: 2900 },
-  { month: 'Jun', income: 12450, expenses: 4220 },
-]
+function buildChartData(txs: Transaction[]) {
+  const months: { month: string; income: number; expenses: number; net: number }[] = []
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() - i)
+    const key = d.toISOString().slice(0, 7)
+    const label = d.toLocaleString('default', { month: 'short' })
+    const monthTxs = txs.filter(t => t.date.startsWith(key))
+    const income = monthTxs.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount_gbp || t.amount), 0)
+    const expenses = monthTxs.filter(t => t.type === 'expense').reduce((s, t) => s + Math.abs(t.amount_gbp || t.amount), 0)
+    months.push({ month: label, income, expenses, net: income - expenses })
+  }
+  return months
+}
 
 export default function FinancePage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -38,9 +45,12 @@ export default function FinancePage() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoading(false); return }
     const { data } = await supabase
       .from('transactions')
       .select('*')
+      .eq('user_id', user.id)
       .order('date', { ascending: false })
       .limit(500)
     setTransactions((data || []) as Transaction[])
@@ -101,7 +111,7 @@ export default function FinancePage() {
 
       {/* P&L Chart */}
       <CyberCard variant="purple" title="REVENUE VS EXPENSES — LAST 6 MONTHS">
-        <PlChart data={MOCK_CHART_DATA} />
+        <PlChart data={buildChartData(transactions)} />
       </CyberCard>
 
       {/* Transaction List */}
