@@ -174,9 +174,17 @@ export default function PricingPage() {
             </div>
             <div className="ml-auto flex items-center gap-4">
               {CURRENCIES.map(c => (
-                <button key={c.value} onClick={() => setCurrency(c.value)} className={`font-orbitron text-xs transition-colors ${currency === c.value ? 'text-yellow' : 'text-textMuted hover:text-text'}`}>
-                  {c.flag} {c.value}
-                </button>
+                <div key={c.value} className="relative">
+                  <button
+                    onClick={() => { if (c.value === 'GBP') setCurrency(c.value) }}
+                    className={`font-orbitron text-xs transition-colors ${c.value !== 'GBP' ? 'opacity-40 cursor-not-allowed' : currency === c.value ? 'text-yellow' : 'text-textMuted hover:text-text'}`}
+                  >
+                    {c.flag} {c.value}
+                  </button>
+                  {c.value !== 'GBP' && (
+                    <span className="absolute -top-3 left-0 text-[8px] font-orbitron text-yellow/60 whitespace-nowrap">SOON</span>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -240,7 +248,7 @@ export default function PricingPage() {
           <span>🔒 SECURED BY STRIPE</span>
           <span>🤖 POWERED BY CLAUDE AI</span>
           <span>🇪🇺 GDPR COMPLIANT</span>
-          <span>🇬🇧 UK · 🇺🇸 US · 🇨🇦 CA</span>
+          <span>🇬🇧 UK · 🇺🇸 US COMING SOON · 🇨🇦 CA COMING SOON</span>
         </div>
       </div>
     </div>
