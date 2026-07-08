@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { CyberCard } from '@/components/ui/cyber-card'
 import { CyberButton } from '@/components/ui/cyber-button'
 import { CyberInput } from '@/components/ui/cyber-input'
-import { StatusDot } from '@/components/ui/status-dot'
 import { FileText, Copy, CheckCheck } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -57,64 +55,106 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-5">
+
+      {/* Page header */}
+      <div className="flex items-center justify-between flex-shrink-0">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">🗂️</span>
-            <h1 className="font-orbitron text-xl text-text">REX — AI OPERATIONS MANAGER</h1>
-            <StatusDot status="active" label />
+          <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-1">{'// REX · AI OPERATIONS MANAGER'}</div>
+          <div className="font-orbitron text-2xl text-text">
+            DOCUMENT <span className="text-orange-400" style={{ textShadow: '0 0 10px rgba(251,146,60,0.4)' }}>FORGE</span>
           </div>
-          <p className="text-textMuted font-rajdhani text-sm">Proposals, contracts, documents, and compliance</p>
+          <div className="font-mono-tech text-[9px] tracking-[2px] text-textMuted mt-1">
+            {'// PROPOSALS · CONTRACTS · COMPLIANCE'}
+          </div>
         </div>
-        <Link href="/agents/rex" className="border border-orange-400/40 text-orange-400 font-orbitron text-xs px-4 py-2 hover:bg-orange-400/5 transition-colors">
+        <Link
+          href="/agents/rex"
+          className="px-4 py-2 font-orbitron text-[11px] tracking-[2px] border border-orange-400/40 text-orange-400 hover:bg-orange-400/10 transition-colors"
+          style={{ boxShadow: '0 0 10px rgba(251,146,60,0.1)' }}
+        >
           CHAT WITH REX →
         </Link>
       </div>
 
-      <CyberCard variant="cyan" title="DOCUMENT GENERATOR">
-        <div className="flex gap-2 mb-4">
+      {/* Document generator */}
+      <div className="relative bg-surface border border-orange-400/20 p-5">
+        <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-orange-400/40" />
+        <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-orange-400/40" />
+        <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-orange-400/40" />
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-orange-400/40" />
+        <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// DOCUMENT GENERATOR'}</div>
+
+        {/* Doc type selector */}
+        <div className="flex gap-2 mb-5">
           {(['proposal', 'contract', 'brief'] as DocType[]).map(t => (
-            <button key={t} onClick={() => setDocType(t)} className={`px-3 py-1.5 font-orbitron text-xs uppercase transition-colors ${docType === t ? 'bg-cyan text-background' : 'border border-border text-textMuted hover:border-cyan/40'}`}>
+            <button
+              key={t}
+              onClick={() => setDocType(t)}
+              className={`px-3 py-1.5 font-orbitron text-[10px] uppercase tracking-[2px] transition-colors ${
+                docType === t
+                  ? 'bg-orange-400/20 border border-orange-400/60 text-orange-400'
+                  : 'border border-border text-textMuted hover:border-orange-400/30 hover:text-text'
+              }`}
+            >
               {t}
             </button>
           ))}
         </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <CyberInput label="Client Name" placeholder="Acme Corp" value={formData.client} onChange={e => setFormData(p => ({ ...p, client: e.target.value }))} />
           <CyberInput label="Project" placeholder="Brand redesign" value={formData.project} onChange={e => setFormData(p => ({ ...p, project: e.target.value }))} />
           <CyberInput label="Budget" placeholder="£5,000" value={formData.budget} onChange={e => setFormData(p => ({ ...p, budget: e.target.value }))} />
           <CyberInput label="Timeline" placeholder="6 weeks" value={formData.timeline} onChange={e => setFormData(p => ({ ...p, timeline: e.target.value }))} />
         </div>
-        <div className="mb-4">
-          <label className="text-cyan text-xs font-orbitron uppercase tracking-widest block mb-1">Additional Details</label>
-          <textarea rows={3} className="w-full px-4 py-3 bg-surface border border-border text-text font-rajdhani text-sm outline-none focus:border-cyan resize-none" placeholder="Special requirements..." value={formData.details} onChange={e => setFormData(p => ({ ...p, details: e.target.value }))} />
+        <div className="mb-5">
+          <label className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 block mb-2">{'// ADDITIONAL DETAILS'}</label>
+          <textarea
+            rows={3}
+            className="w-full px-4 py-3 bg-background border border-border text-text font-rajdhani text-sm outline-none focus:border-orange-400/60 resize-none transition-colors"
+            placeholder="Special requirements..."
+            value={formData.details}
+            onChange={e => setFormData(p => ({ ...p, details: e.target.value }))}
+          />
         </div>
         <CyberButton onClick={handleGenerate} loading={loading}>
           <FileText size={14} /> GENERATE WITH REX
         </CyberButton>
-      </CyberCard>
+      </div>
 
+      {/* Generated document */}
       {generatedDoc && (
-        <CyberCard variant="ghost" title="GENERATED DOCUMENT">
-          <div className="flex justify-end mb-3">
+        <div className="relative bg-surface border border-cyan/20 p-5">
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60">{'// GENERATED DOCUMENT'}</div>
             <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-cyan transition-colors">
               {copied ? <><CheckCheck size={12} className="text-green" /> COPIED</> : <><Copy size={12} /> COPY</>}
             </button>
           </div>
           <pre className="text-text text-sm font-rajdhani leading-relaxed whitespace-pre-wrap">{generatedDoc}</pre>
-        </CyberCard>
+        </div>
       )}
 
+      {/* Document templates */}
       <div>
-        <h2 className="font-orbitron text-xs text-cyan uppercase tracking-widest mb-3">DOCUMENT TEMPLATES</h2>
+        <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-3">{'// DOCUMENT TEMPLATES'}</div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {TEMPLATES.map(t => (
-            <div key={t.id} className="bg-surface border border-border p-4 hover:border-orange-400/30 transition-colors">
-              <FileText size={18} className="text-orange-400 mb-2" />
+            <div key={t.id} className="relative bg-surface border border-orange-400/20 p-4 hover:border-orange-400/40 transition-colors">
+              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-orange-400/40" />
+              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-orange-400/40" />
+              <FileText size={18} className="text-orange-400 mb-3" />
               <p className="text-text text-sm font-rajdhani font-semibold mb-1">{t.label}</p>
               <p className="text-textMuted text-xs font-rajdhani mb-3">{t.desc}</p>
-              <button onClick={() => { setDocType(t.id); setFormData(p => ({ ...p, project: t.label })) }} className="text-orange-400 text-xs font-orbitron hover:opacity-80 transition-opacity">
+              <button
+                onClick={() => { setDocType(t.id); setFormData(p => ({ ...p, project: t.label })) }}
+                className="text-orange-400 text-xs font-orbitron hover:opacity-80 transition-opacity tracking-wider"
+              >
                 USE TEMPLATE →
               </button>
             </div>
@@ -122,17 +162,26 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      <CyberCard variant="ghost" title="COMPLIANCE CHECKLIST — UK">
+      {/* Compliance checklist */}
+      <div className="relative bg-surface border border-cyan/20 p-5">
+        <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+        <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+        <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+        <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// COMPLIANCE CHECKLIST — UK'}</div>
         <div className="flex flex-col gap-3">
           {UK_COMPLIANCE.map(({ item, status }) => (
-            <div key={item} className="flex items-center gap-3">
-              <span className={status === 'check' ? 'text-green text-sm' : 'text-yellow text-sm'}>{status === 'check' ? '✓' : '⚠'}</span>
+            <div key={item} className="flex items-center gap-3 py-2 border-b border-border/30 last:border-0">
+              <span className={`font-mono-tech text-[10px] px-2 py-0.5 border ${status === 'check' ? 'border-green/30 text-green' : 'border-yellow/30 text-yellow'}`}>
+                {status === 'check' ? 'PASS' : 'REVIEW'}
+              </span>
               <span className="text-text text-sm font-rajdhani">{item}</span>
             </div>
           ))}
         </div>
         <p className="text-textMuted text-xs font-rajdhani mt-4">Chat with REX for detailed guidance on any compliance item.</p>
-      </CyberCard>
+      </div>
+
     </div>
   )
 }

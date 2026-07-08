@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CyberCard } from '@/components/ui/cyber-card'
 import { CyberButton } from '@/components/ui/cyber-button'
 import { CyberInput } from '@/components/ui/cyber-input'
 import { User, CreditCard, Bell, Shield } from 'lucide-react'
@@ -81,23 +80,46 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
+
+      {/* Page header */}
       <div>
-        <h1 className="font-orbitron text-xl text-text mb-1">SETTINGS</h1>
-        <p className="text-textMuted font-rajdhani text-sm">Manage your account and preferences</p>
+        <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-1">{'// VAULT CONFIGURATION'}</div>
+        <div className="font-orbitron text-2xl text-text">
+          SYSTEM <span className="text-cyan" style={{ textShadow: '0 0 10px rgba(0,200,255,0.4)' }}>SETTINGS</span>
+        </div>
+        <div className="font-mono-tech text-[9px] tracking-[2px] text-textMuted mt-1">
+          {'// MANAGE YOUR ACCOUNT AND PREFERENCES'}
+        </div>
       </div>
 
-      <div className="flex gap-1 border-b border-border">
+      {/* Tab navigation */}
+      <div className="flex gap-1 border-b border-cyan/15 relative">
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan/20 to-transparent" />
         {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-4 py-2.5 font-orbitron text-xs uppercase transition-colors ${tab === t.id ? 'text-cyan border-b-2 border-cyan -mb-px' : 'text-textMuted hover:text-text'}`}>
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex items-center gap-2 px-4 py-2.5 font-orbitron text-[10px] uppercase tracking-[2px] transition-colors relative ${
+              tab === t.id
+                ? 'text-cyan border-b-2 border-cyan -mb-px'
+                : 'text-textMuted hover:text-text'
+            }`}
+          >
             <t.icon size={12} />
             {t.label}
           </button>
         ))}
       </div>
 
+      {/* Profile tab */}
       {tab === 'profile' && (
-        <CyberCard variant="cyan" title="PROFILE INFORMATION">
+        <div className="relative bg-surface border border-cyan/20 p-5">
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+          <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// PROFILE INFORMATION'}</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <CyberInput label="Full Name" value={profile.full_name} onChange={e => setProfile(p => ({ ...p, full_name: e.target.value }))} placeholder="Jane Smith" />
             <CyberInput label="Business Name" value={profile.business_name} onChange={e => setProfile(p => ({ ...p, business_name: e.target.value }))} placeholder="Smith Studio" />
@@ -105,32 +127,51 @@ export default function SettingsPage() {
             <CyberInput label="City" value={profile.city} onChange={e => setProfile(p => ({ ...p, city: e.target.value }))} placeholder="London" />
           </div>
           <div className="mb-4">
-            <label className="text-cyan text-xs font-orbitron uppercase tracking-widest block mb-1">Country</label>
-            <select value={profile.country} onChange={e => setProfile(p => ({ ...p, country: e.target.value, currency: e.target.value === 'UK' ? 'GBP' : e.target.value === 'US' ? 'USD' : 'CAD' }))} className="w-full px-4 py-3 bg-surface border border-border text-text font-rajdhani text-sm outline-none focus:border-cyan">
+            <label className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 block mb-2">{'// COUNTRY'}</label>
+            <select
+              value={profile.country}
+              onChange={e => setProfile(p => ({ ...p, country: e.target.value, currency: e.target.value === 'UK' ? 'GBP' : e.target.value === 'US' ? 'USD' : 'CAD' }))}
+              className="w-full px-4 py-3 bg-background border border-border text-text font-rajdhani text-sm outline-none focus:border-cyan transition-colors"
+            >
               {COUNTRIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
-          <div className="mb-4">
-            <p className="text-xs font-orbitron text-textMuted uppercase tracking-widest mb-1">Current Tier</p>
-            <span className={`text-xs font-orbitron px-3 py-1 uppercase ${profile.tier === 'agency' ? 'text-yellow bg-yellow/10 border border-yellow/30' : profile.tier === 'studio' ? 'text-purple bg-purple/10 border border-purple/30' : profile.tier === 'solo' ? 'text-cyan bg-cyan/10 border border-cyan/30' : 'text-textMuted bg-surface border border-border'}`}>
-              {profile.tier}
+          <div className="mb-5">
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-2">{'// CURRENT TIER'}</div>
+            <span className={`font-mono-tech text-[10px] px-3 py-1 border tracking-[2px] ${
+              profile.tier === 'agency' ? 'text-yellow border-yellow/30 bg-yellow/5' :
+              profile.tier === 'studio' ? 'text-purple border-purple/30 bg-purple/5' :
+              profile.tier === 'solo' ? 'text-cyan border-cyan/30 bg-cyan/5' :
+              'text-textMuted border-border'
+            }`}>
+              {profile.tier.toUpperCase()}
             </span>
           </div>
           <CyberButton onClick={handleSaveProfile} loading={saving}>SAVE CHANGES</CyberButton>
-        </CyberCard>
+        </div>
       )}
 
+      {/* Billing tab */}
       {tab === 'billing' && (
         <div className="flex flex-col gap-4">
-          <CyberCard variant="purple" title="SUBSCRIPTION">
+          <div className="relative bg-surface border border-purple/20 p-5">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-purple/40" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-purple/40" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-purple/40" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-purple/40" />
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// SUBSCRIPTION'}</div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="font-orbitron text-text text-sm uppercase">{profile.tier} Plan</p>
+                <p className="font-orbitron text-text text-sm uppercase tracking-wider">{profile.tier} Plan</p>
                 <p className="text-textMuted font-rajdhani text-xs mt-1">
                   {profile.tier === 'free' ? 'Upgrade to unlock all AI agents' : 'Full access to BVI platform'}
                 </p>
               </div>
-              <span className={`text-xs font-orbitron px-3 py-1 uppercase ${profile.tier !== 'free' ? 'text-cyan border border-cyan/30' : 'text-textMuted border border-border'}`}>
+              <span className={`font-mono-tech text-[9px] px-2 py-0.5 border tracking-[2px] ${
+                profile.tier !== 'free'
+                  ? 'text-cyan border-cyan/30 bg-cyan/5'
+                  : 'text-textMuted border-border'
+              }`}>
                 {profile.tier === 'free' ? 'FREE' : 'ACTIVE'}
               </span>
             </div>
@@ -139,21 +180,32 @@ export default function SettingsPage() {
             ) : (
               <CyberButton variant="ghost" onClick={handlePortal} loading={portalLoading}>MANAGE BILLING →</CyberButton>
             )}
-          </CyberCard>
+          </div>
 
-          <CyberCard variant="ghost" title="BILLING HISTORY">
+          <div className="relative bg-surface border border-cyan/20 p-5">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-3">{'// BILLING HISTORY'}</div>
             <p className="text-textMuted font-rajdhani text-sm">Access your invoices and payment history through the billing portal.</p>
             {profile.tier !== 'free' && (
-              <button onClick={handlePortal} className="text-cyan text-xs font-orbitron mt-3 hover:opacity-80 transition-opacity">
+              <button onClick={handlePortal} className="text-cyan text-xs font-orbitron mt-3 hover:opacity-80 transition-opacity tracking-wider">
                 OPEN BILLING PORTAL →
               </button>
             )}
-          </CyberCard>
+          </div>
         </div>
       )}
 
+      {/* Notifications tab */}
       {tab === 'notifications' && (
-        <CyberCard variant="ghost" title="NOTIFICATION PREFERENCES">
+        <div className="relative bg-surface border border-cyan/20 p-5">
+          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+          <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// NOTIFICATION PREFERENCES'}</div>
           <div className="flex flex-col gap-4">
             {[
               { key: 'weekly_report', label: 'Weekly Financial Report', desc: 'Receive a summary every Monday' },
@@ -161,7 +213,7 @@ export default function SettingsPage() {
               { key: 'agent_updates', label: 'Agent Activity Updates', desc: 'Notifications when agents complete tasks' },
               { key: 'marketing', label: 'Product Updates & Tips', desc: 'New features and freelance tips' },
             ].map(({ key, label, desc }) => (
-              <div key={key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+              <div key={key} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
                 <div>
                   <p className="text-text font-rajdhani font-semibold text-sm">{label}</p>
                   <p className="text-textMuted font-rajdhani text-xs">{desc}</p>
@@ -176,35 +228,52 @@ export default function SettingsPage() {
             ))}
           </div>
           <CyberButton className="mt-4" onClick={() => toast.success('Notification preferences saved')}>SAVE PREFERENCES</CyberButton>
-        </CyberCard>
+        </div>
       )}
 
+      {/* Security tab */}
       {tab === 'security' && (
         <div className="flex flex-col gap-4">
-          <CyberCard variant="ghost" title="CHANGE PASSWORD">
+          <div className="relative bg-surface border border-cyan/20 p-5">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// CHANGE PASSWORD'}</div>
             <div className="flex flex-col gap-3 mb-4">
               <CyberInput label="New Password" type="password" placeholder="••••••••" />
               <CyberInput label="Confirm Password" type="password" placeholder="••••••••" />
             </div>
             <CyberButton onClick={() => toast.info('Password change via magic link — check your email')}>UPDATE PASSWORD</CyberButton>
-          </CyberCard>
+          </div>
 
-          <CyberCard variant="ghost" title="SESSIONS">
+          <div className="relative bg-surface border border-cyan/20 p-5">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-3">{'// SESSIONS'}</div>
             <p className="text-textMuted font-rajdhani text-sm mb-4">You are currently signed in on this device.</p>
             <CyberButton variant="danger" onClick={async () => { const s = createClient(); await s.auth.signOut(); window.location.href = '/login' }}>
               SIGN OUT ALL DEVICES
             </CyberButton>
-          </CyberCard>
+          </div>
 
-          <CyberCard variant="ghost" title="DATA & PRIVACY">
+          <div className="relative bg-surface border border-cyan/20 p-5">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-3">{'// DATA & PRIVACY'}</div>
             <p className="text-textMuted font-rajdhani text-sm mb-4">Download or delete your account data.</p>
             <div className="flex gap-3">
-              <button className="text-cyan text-xs font-orbitron hover:opacity-80 transition-opacity">EXPORT DATA →</button>
-              <button className="text-red text-xs font-orbitron hover:opacity-80 transition-opacity">DELETE ACCOUNT →</button>
+              <button className="text-cyan text-xs font-orbitron hover:opacity-80 transition-opacity tracking-wider">EXPORT DATA →</button>
+              <button className="text-pink text-xs font-orbitron hover:opacity-80 transition-opacity tracking-wider">DELETE ACCOUNT →</button>
             </div>
-          </CyberCard>
+          </div>
         </div>
       )}
+
     </div>
   )
 }
