@@ -570,13 +570,13 @@ export default function LandingPage() {
       <footer className="relative z-10 border-t px-6 py-8" style={{ borderColor: 'rgba(0,200,255,0.08)' }}>
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="font-orbitron text-[11px] tracking-[3px]" style={{ color: 'rgba(100,140,170,0.4)' }}>BVI — BLACK VAULT INTELLIGENCE</span>
-          <div className="flex gap-6">
-            {[['Pricing', '/pricing'], ['Login', '/login'], ['Sign Up', '/signup']].map(([label, href]) => (
+          <div className="flex flex-wrap gap-6 justify-center">
+            {[['Pricing', '/pricing'], ['Login', '/login'], ['Sign Up', '/signup'], ['Terms', '/terms'], ['Privacy', '/privacy'], ['Cookies', '/cookies']].map(([label, href]) => (
               <Link key={label} href={href} className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan"
                 style={{ color: 'rgba(100,140,170,0.4)' }}>{label.toUpperCase()}</Link>
             ))}
           </div>
-          <span className="font-mono-tech text-[9px]" style={{ color: 'rgba(100,140,170,0.3)' }}>© {new Date().getFullYear()} BVI</span>
+          <span className="font-mono-tech text-[9px]" style={{ color: 'rgba(100,140,170,0.3)' }}>© {new Date().getFullYear()} BLACK VAULT INTELLIGENCE LTD · 🇬🇧 UK</span>
         </div>
       </footer>
     </div>

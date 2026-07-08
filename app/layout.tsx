@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Orbitron, Rajdhani, Share_Tech_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
+import { CookieBanner } from '@/components/ui/cookie-banner'
 import './globals.css'
 
 const orbitron = Orbitron({
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className={`${orbitron.variable} ${rajdhani.variable} ${shareTechMono.variable} font-rajdhani`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
           {children}
+          <CookieBanner />
           <Toaster
             theme="dark"
             toastOptions={{

@@ -178,6 +178,17 @@ export default function SignupPage() {
             )}
           </div>
 
+          <div className="flex items-start gap-2 mt-2">
+            <input type="checkbox" id="terms" required className="mt-1 accent-cyan" />
+            <label htmlFor="terms" className="text-textMuted text-xs font-rajdhani leading-relaxed">
+              I agree to the{' '}
+              <Link href="/terms" target="_blank" className="text-cyan hover:underline">Terms of Service</Link>
+              {' '}and{' '}
+              <Link href="/privacy" target="_blank" className="text-cyan hover:underline">Privacy Policy</Link>.
+              I understand that BVI provides AI-generated information, not regulated financial or tax advice.
+            </label>
+          </div>
+
           <CyberButton type="submit" variant="purple" loading={loading} fullWidth className="mt-2">
             Activate Account
           </CyberButton>

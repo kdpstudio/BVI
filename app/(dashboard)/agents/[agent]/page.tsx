@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { ChatInterface } from '@/components/agents/chat-interface'
 import { QuickActions } from '@/components/agents/quick-actions'
 import { StatusDot } from '@/components/ui/status-dot'
+import { AiDisclaimer } from '@/components/ui/ai-disclaimer'
 import { Agent } from '@/types'
 import { AGENTS } from '@/lib/agents/config'
 
@@ -56,6 +57,7 @@ export default function AgentPage({ params }: { params: Promise<{ agent: string 
         <div className="flex-1 min-h-0">
           <ChatInterface agent={agentId} />
         </div>
+        <AiDisclaimer />
       </div>
 
       {/* Side panel */}
