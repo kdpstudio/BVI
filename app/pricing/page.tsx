@@ -247,7 +247,7 @@ export default function PricingPage() {
         <div className="flex flex-wrap items-center justify-center gap-8 border-t border-border pt-8 text-textMuted text-xs font-orbitron">
           <span>🔒 SECURED BY STRIPE</span>
           <span>🤖 POWERED BY CLAUDE AI</span>
-          <span>🇪🇺 GDPR COMPLIANT</span>
+          <span>🇬🇧 UK GDPR COMPLIANT</span>
           <span>🇬🇧 UK · 🇺🇸 US COMING SOON · 🇨🇦 CA COMING SOON</span>
         </div>
       </div>
