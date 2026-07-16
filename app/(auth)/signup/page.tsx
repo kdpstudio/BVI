@@ -22,7 +22,7 @@ const signupSchema = z.object({
   full_name: z.string().min(2, 'Full name required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirm_password: z.string(),
+  confirm_password: z.string().min(8, 'Please confirm your password'),
   country: z.literal('UK'),
   city: z.string().min(2, 'City required'),
   business_name: z.string().min(2, 'Business name required'),
@@ -134,16 +134,13 @@ export default function SignupPage() {
           {/* Country selector */}
           <div className="flex flex-col gap-1">
             <label className="text-cyan text-xs font-orbitron uppercase tracking-widest">Country</label>
-            <select
-              className="w-full px-4 py-3 bg-surface border border-border text-text font-rajdhani text-base outline-none focus:border-cyan focus:shadow-[0_0_10px_rgba(0,200,255,0.2)] transition-all appearance-none"
-              {...register('country')}
-            >
-              <option value="UK">🇬🇧 United Kingdom — GBP</option>
-              <option value="US" disabled>🇺🇸 United States — USD (Coming Soon)</option>
-              <option value="CA" disabled>🇨🇦 Canada — CAD (Coming Soon)</option>
-            </select>
+            <div className="w-full px-4 py-3 bg-surface border border-border text-text font-rajdhani text-base flex items-center justify-between">
+              <span>🇬🇧 United Kingdom — GBP</span>
+              <span className="font-mono-tech text-[9px] text-cyan/50 tracking-widest">UK ONLY</span>
+            </div>
+            <input type="hidden" value="UK" {...register('country')} />
             <p className="text-textMuted text-xs font-rajdhani">
-              Currency auto-set to: <span className="text-cyan">{CURRENCIES[selectedCountry] || 'GBP'}</span>
+              🇺🇸 US &amp; 🇨🇦 CA — <span className="text-yellow/70">Coming Soon</span>
             </p>
           </div>
 
@@ -165,16 +162,16 @@ export default function SignupPage() {
           <div className="flex flex-col gap-1">
             <label className="text-cyan text-xs font-orbitron uppercase tracking-widest">Business Type</label>
             <select
-              className="w-full px-4 py-3 bg-surface border border-border text-text font-rajdhani text-base outline-none focus:border-cyan focus:shadow-[0_0_10px_rgba(0,200,255,0.2)] transition-all appearance-none"
+              className={`w-full px-4 py-3 bg-surface border text-text font-rajdhani text-base outline-none focus:border-cyan focus:shadow-[0_0_10px_rgba(0,200,255,0.2)] transition-all appearance-none ${errors.business_type ? 'border-red/60' : 'border-border'}`}
               {...register('business_type')}
             >
-              <option value="">Select type...</option>
+              <option value="">Select type... *</option>
               {BUSINESS_TYPES.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
             {errors.business_type && (
-              <p className="text-red text-xs font-rajdhani">{errors.business_type.message}</p>
+              <p className="text-red-400 text-xs font-rajdhani">{errors.business_type.message}</p>
             )}
           </div>
 
