@@ -23,7 +23,7 @@ const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirm_password: z.string(),
-  country: z.enum(['UK', 'US', 'CA']),
+  country: z.literal('UK'),
   city: z.string().min(2, 'City required'),
   business_name: z.string().min(2, 'Business name required'),
   business_type: z.string().min(1, 'Business type required'),
@@ -138,9 +138,9 @@ export default function SignupPage() {
               className="w-full px-4 py-3 bg-surface border border-border text-text font-rajdhani text-base outline-none focus:border-cyan focus:shadow-[0_0_10px_rgba(0,200,255,0.2)] transition-all appearance-none"
               {...register('country')}
             >
-              <option value="UK">United Kingdom — GBP</option>
-              <option value="US">United States — USD</option>
-              <option value="CA">Canada — CAD</option>
+              <option value="UK">🇬🇧 United Kingdom — GBP</option>
+              <option value="US" disabled>🇺🇸 United States — USD (Coming Soon)</option>
+              <option value="CA" disabled>🇨🇦 Canada — CAD (Coming Soon)</option>
             </select>
             <p className="text-textMuted text-xs font-rajdhani">
               Currency auto-set to: <span className="text-cyan">{CURRENCIES[selectedCountry] || 'GBP'}</span>
