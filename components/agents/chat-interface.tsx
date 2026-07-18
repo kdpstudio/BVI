@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Send } from 'lucide-react'
+import { Send, Download } from 'lucide-react'
 import { Agent } from '@/types'
 import { MessageBubble } from './message-bubble'
 import { createClient } from '@/lib/supabase/client'
@@ -142,6 +142,17 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
     return () => window.removeEventListener('quick-action', handler)
   }, [])
 
+  function handleExport() {
+    const lines = messages.map(m => `[${m.timestamp}] ${m.role.toUpperCase()}: ${m.content}`).join('\n\n')
+    const blob = new Blob([lines], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${agent}-chat-${new Date().toISOString().slice(0, 10)}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="flex flex-col h-full" role="region" aria-label={`Chat with ${agent}`}>
       <div className="flex-1 overflow-y-auto p-4 min-h-0" aria-live="polite" aria-atomic="false">
@@ -218,6 +229,13 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
       </div>
 
       <div className={`border-t ${theme.border}/30 p-4 flex-shrink-0`}>
+        {messages.length > 0 && (
+          <div className="flex justify-end mb-2">
+            <button onClick={handleExport} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-text transition-colors">
+              <Download size={11} /> EXPORT CHAT
+            </button>
+          </div>
+        )}
         <div className={`flex border ${theme.border}/30 bg-surface2 focus-within:border-opacity-100 transition-all`}
           style={{ boxShadow: input ? `0 0 15px ${theme.glow}` : 'none' }}
         >

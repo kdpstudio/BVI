@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { CyberBackground } from '@/components/ui/cyber-background'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { CommandPalette } from '@/components/ui/command-palette'
 import { format } from 'date-fns'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="relative z-10 flex h-screen overflow-hidden">
       <CyberBackground />
+      <CommandPalette />
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

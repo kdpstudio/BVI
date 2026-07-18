@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Trash2 } from 'lucide-react'
 import { Transaction } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 interface TransactionTableProps {
   transactions: Transaction[]
@@ -12,10 +14,46 @@ interface TransactionTableProps {
 
 const PAGE_SIZE = 25
 
-export function TransactionTable({ transactions }: TransactionTableProps) {
+export function TransactionTable({ transactions, onRefresh }: TransactionTableProps) {
   const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'flagged'>('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleBulkDelete() {
+    if (selected.size === 0) return
+    setDeleting(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('transactions').delete().in('id', Array.from(selected))
+      if (error) throw error
+      toast.success(`Deleted ${selected.size} transaction${selected.size > 1 ? 's' : ''}`)
+      setSelected(new Set())
+      onRefresh()
+    } catch {
+      toast.error('Failed to delete transactions')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  function toggleAll() {
+    if (selected.size === paged.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(paged.map(t => t.id)))
+    }
+  }
+
+  function toggleOne(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const filtered = transactions.filter(t => {
     if (filter === 'income' && t.type !== 'income') return false
@@ -32,6 +70,21 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
 
   return (
     <div>
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 mb-3 px-3 py-2 bg-surface2 border border-cyan/20">
+          <span className="font-mono-tech text-[10px] text-cyan/60">{selected.size} SELECTED</span>
+          <button
+            onClick={handleBulkDelete}
+            disabled={deleting}
+            className="flex items-center gap-1.5 text-xs font-orbitron text-red hover:opacity-80 transition-opacity disabled:opacity-40 ml-auto"
+          >
+            <Trash2 size={12} /> {deleting ? 'DELETING...' : 'DELETE SELECTED'}
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-xs font-orbitron text-textMuted hover:text-text transition-colors">
+            CLEAR
+          </button>
+        </div>
+      )}
       <div className="flex flex-wrap gap-2 mb-4">
         {FILTERS.map(f => (
           <button
@@ -59,6 +112,14 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
+                <th className="pb-2 pr-2 w-8">
+                  <input
+                    type="checkbox"
+                    checked={paged.length > 0 && selected.size === paged.length}
+                    onChange={toggleAll}
+                    className="accent-cyan cursor-pointer"
+                  />
+                </th>
                 {['Date', 'Description', 'Category', 'Amount', 'Flag'].map(h => (
                   <th key={h} className="text-left text-xs font-orbitron text-textMuted pb-2 pr-4 whitespace-nowrap">{h}</th>
                 ))}
@@ -66,7 +127,15 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
             </thead>
             <tbody>
               {paged.map((tx) => (
-                <tr key={tx.id} className="border-b border-border/40 hover:bg-surface2/50 transition-colors">
+                <tr key={tx.id} className={`border-b border-border/40 hover:bg-surface2/50 transition-colors ${selected.has(tx.id) ? 'bg-cyan/5' : ''}`}>
+                  <td className="py-2.5 pr-2">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(tx.id)}
+                      onChange={() => toggleOne(tx.id)}
+                      className="accent-cyan cursor-pointer"
+                    />
+                  </td>
                   <td className="py-2.5 pr-4 text-textMuted text-xs font-mono whitespace-nowrap">{formatDate(tx.date)}</td>
                   <td className="py-2.5 pr-4 text-text text-sm font-rajdhani max-w-xs truncate">{tx.description}</td>
                   <td className="py-2.5 pr-4 whitespace-nowrap">

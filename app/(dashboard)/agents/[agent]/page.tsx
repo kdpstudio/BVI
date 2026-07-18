@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import { ChatInterface } from '@/components/agents/chat-interface'
@@ -9,6 +9,8 @@ import { StatusDot } from '@/components/ui/status-dot'
 import { AiDisclaimer } from '@/components/ui/ai-disclaimer'
 import { Agent } from '@/types'
 import { AGENTS } from '@/lib/agents/config'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Zap, X } from 'lucide-react'
 
 const VALID_AGENTS = ['finn', 'sage', 'aria', 'max', 'rex']
 
@@ -33,6 +35,7 @@ export default function AgentPage({ params }: { params: Promise<{ agent: string 
   const { agent: agentParam } = use(params)
   const searchParams = useSearchParams()
   const initialMessage = searchParams.get('message') || undefined
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   if (!VALID_AGENTS.includes(agentParam.toLowerCase())) notFound()
 
@@ -50,13 +53,20 @@ export default function AgentPage({ params }: { params: Promise<{ agent: string 
       <div className="flex-1 bg-surface border border-border flex flex-col min-h-0">
         <div className={`flex items-center gap-3 p-4 border-b ${borderColor}/30 flex-shrink-0`}>
           <span className="text-2xl">{config.emoji}</span>
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className={`font-orbitron text-lg ${textColor}`}>{config.name}</h1>
               <StatusDot status="active" label />
             </div>
             <p className="text-textMuted text-xs font-rajdhani">{config.role}</p>
           </div>
+          {/* Mobile quick actions button */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className={`lg:hidden flex items-center gap-1.5 px-3 py-1.5 border ${borderColor}/40 ${textColor} font-orbitron text-[10px] tracking-wider`}
+          >
+            <Zap size={11} /> ACTIONS
+          </button>
         </div>
         <div className="flex-1 min-h-0">
           <ChatInterface agent={agentId} initialMessage={initialMessage} />
@@ -64,7 +74,7 @@ export default function AgentPage({ params }: { params: Promise<{ agent: string 
         <AiDisclaimer />
       </div>
 
-      {/* Side panel */}
+      {/* Desktop side panel */}
       <div className="w-64 flex-shrink-0 flex flex-col gap-4 overflow-y-auto hidden lg:flex">
         <div className="bg-surface border border-border p-4">
           <p className={`font-orbitron text-xs uppercase tracking-widest mb-3 ${textColor}`}>CAPABILITIES</p>
@@ -86,6 +96,59 @@ export default function AgentPage({ params }: { params: Promise<{ agent: string 
           />
         </div>
       </div>
+
+      {/* Mobile bottom drawer */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 lg:hidden"
+              style={{ background: 'rgba(2,4,8,0.7)' }}
+              onClick={() => setDrawerOpen(false)}
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border p-5 lg:hidden max-h-[70vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className={`font-orbitron text-xs tracking-widest ${textColor}`}>{config.name} — QUICK ACTIONS</span>
+                <button onClick={() => setDrawerOpen(false)} className="text-textMuted hover:text-text transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="mb-5">
+                <p className={`font-orbitron text-[10px] uppercase tracking-widest mb-2 ${textColor} opacity-60`}>QUICK ACTIONS</p>
+                <QuickActions
+                  agent={agentId}
+                  onSelect={msg => {
+                    window.dispatchEvent(new CustomEvent('quick-action', { detail: { message: msg } }))
+                    setDrawerOpen(false)
+                  }}
+                />
+              </div>
+
+              <div>
+                <p className={`font-orbitron text-[10px] uppercase tracking-widest mb-2 ${textColor} opacity-60`}>CAPABILITIES</p>
+                <ul className="flex flex-col gap-1.5">
+                  {CAPABILITIES[agentId].map(cap => (
+                    <li key={cap} className={`flex items-center gap-2 text-textMuted text-xs font-rajdhani`}>
+                      <span className={`w-1 h-1 rounded-full flex-shrink-0 ${textColor.replace('text-', 'bg-')}`} />
+                      {cap}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

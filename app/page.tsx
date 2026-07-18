@@ -3,7 +3,12 @@
 import Link from 'next/link'
 import { motion, useInView } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
-import { LandingBackground } from '@/components/ui/landing-background'
+import dynamic from 'next/dynamic'
+
+const LandingBackground = dynamic(
+  () => import('@/components/ui/landing-background').then(m => ({ default: m.LandingBackground })),
+  { ssr: false, loading: () => null }
+)
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 
