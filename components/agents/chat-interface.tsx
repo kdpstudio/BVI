@@ -32,16 +32,19 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('agent_chats').select('*').eq('agent', agent).order('created_at', { ascending: true }).limit(50)
-      .then(({ data }) => {
-        if (data) {
-          setMessages(data.map(m => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.content,
-            timestamp: new Date(m.created_at).toLocaleTimeString(),
-          })))
-        }
-      })
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('agent_chats').select('*').eq('agent', agent).eq('user_id', user.id).order('created_at', { ascending: true }).limit(50)
+        .then(({ data }) => {
+          if (data) {
+            setMessages(data.map(m => ({
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+              timestamp: new Date(m.created_at).toLocaleTimeString(),
+            })))
+          }
+        })
+    })
   }, [agent])
 
   useEffect(() => {
