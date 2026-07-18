@@ -1,20 +1,21 @@
 import { NewsItem, Country } from '@/types'
 
 export async function fetchNews(country: Country): Promise<NewsItem[]> {
-  const apiKey = process.env.NEWS_API_KEY
+  const apiKey = process.env.GNEWS_API_KEY
   if (!apiKey) return getMockNews(country)
 
   const queries: Record<Country, string> = {
-    UK: 'q=HMRC OR freelancer OR small+business&language=en&sortBy=publishedAt',
-    US: 'q=IRS OR freelancer OR small+business&language=en&sortBy=publishedAt',
-    CA: 'q=CRA OR freelancer OR small+business+Canada&language=en&sortBy=publishedAt',
+    UK: 'HMRC OR freelancer OR "small business"',
+    US: 'IRS OR freelancer OR "small business"',
+    CA: 'CRA OR freelancer OR "small business" Canada',
   }
 
+  const lang = 'en'
+  const country_code: Record<Country, string> = { UK: 'gb', US: 'us', CA: 'ca' }
+
   try {
-    const res = await fetch(
-      `https://newsapi.org/v2/everything?${queries[country]}&pageSize=3&apiKey=${apiKey}`,
-      { next: { revalidate: 7200 } }
-    )
+    const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(queries[country])}&lang=${lang}&country=${country_code[country]}&max=3&apikey=${apiKey}`
+    const res = await fetch(url, { next: { revalidate: 7200 } })
     if (!res.ok) return getMockNews(country)
     const data = await res.json()
     return (data.articles || []).slice(0, 3).map((a: Record<string, unknown>) => ({
