@@ -37,7 +37,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
           <button
             key={f}
             onClick={() => { setFilter(f); setPage(0) }}
-            className={`px-3 py-1 text-xs font-orbitron uppercase transition-colors ${filter === f ? 'bg-cyan text-background' : 'border border-border text-textMuted hover:border-cyan/50'}`}
+            className={`px-3 py-2 text-xs font-orbitron uppercase transition-colors ${filter === f ? 'bg-cyan text-background' : 'border border-border text-textMuted hover:border-cyan/50'}`}
           >
             {f}
           </button>
@@ -46,7 +46,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(0) }}
           placeholder="Search..."
-          className="ml-auto px-3 py-1 bg-surface border border-border text-text text-sm font-rajdhani outline-none focus:border-cyan"
+          className="w-full sm:w-auto sm:ml-auto px-3 py-1 bg-surface border border-border text-text text-sm font-rajdhani outline-none focus:border-cyan"
         />
       </div>
 

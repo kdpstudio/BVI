@@ -200,7 +200,7 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
             className={`px-4 ${theme.bg} text-background font-orbitron text-xs disabled:opacity-30 flex items-center gap-2 flex-shrink-0 transition-opacity`}
           >
             <Send size={14} />
-            TRANSMIT
+            <span className="hidden sm:inline">TRANSMIT</span>
           </motion.button>
         </div>
         <p className="text-textDim text-xs mt-1 font-rajdhani">Enter to send · Shift+Enter for new line</p>

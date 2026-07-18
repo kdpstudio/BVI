@@ -125,10 +125,12 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center gap-6">
-          <Link href="#agents" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>AGENTS</Link>
-          <Link href="#features" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>FEATURES</Link>
-          <Link href="/pricing" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>PRICING</Link>
-          <Link href="/login" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>LOGIN</Link>
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="#agents" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>AGENTS</Link>
+            <Link href="#features" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>FEATURES</Link>
+            <Link href="/pricing" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>PRICING</Link>
+            <Link href="/login" className="font-mono-tech text-[10px] tracking-[2px] transition-colors hover:text-cyan" style={{ color: 'rgba(150,190,220,0.5)' }}>LOGIN</Link>
+          </div>
           <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
             <Link href="/signup" className="px-4 py-2 font-orbitron text-[10px] tracking-[2px] border border-cyan text-cyan hover:bg-cyan/10 transition-all"
               style={{ boxShadow: '0 0 12px rgba(0,200,255,0.2)' }}>
@@ -153,7 +155,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="inline-flex items-center gap-2 border px-3 py-1.5 mb-8 font-mono-tech text-[10px] tracking-[2px]"
+          className="inline-flex flex-wrap items-center gap-2 border px-3 py-1.5 mb-8 font-mono-tech text-[10px] tracking-[2px]"
           style={{ borderColor: 'rgba(0,200,255,0.3)', color: '#00c8ff', background: 'rgba(0,200,255,0.05)' }}
         >
           <motion.span
@@ -278,7 +280,7 @@ export default function LandingPage() {
           </div>
 
           {/* Preview body */}
-          <div className="grid grid-cols-4 gap-3 p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4">
             {[
               { label: 'MONTHLY REVENUE', val: '£4,820', col: '#00c8ff', pct: 74 },
               { label: 'TAX LIABILITY',   val: '£1,240', col: '#ffb800', pct: 42 },
@@ -305,7 +307,7 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-5 gap-0 border-t" style={{ borderColor: 'rgba(0,200,255,0.08)' }}>
+          <div className="grid grid-cols-5 gap-0 border-t overflow-hidden" style={{ borderColor: 'rgba(0,200,255,0.08)' }}>
             {AGENTS.map((a, i) => (
               <motion.div
                 key={a.id}
@@ -556,7 +558,7 @@ export default function LandingPage() {
             </Link>
           </motion.div>
 
-          <div className="flex items-center justify-center gap-8 mt-10">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 mt-10">
             {['FREE TO START', 'CANCEL ANYTIME', 'UK · US · CA TAX'].map((t) => (
               <div key={t} className="flex items-center gap-2 font-mono-tech text-[9px] tracking-[2px]" style={{ color: 'rgba(100,140,170,0.5)' }}>
                 <span className="text-green text-[8px]">✓</span> {t}

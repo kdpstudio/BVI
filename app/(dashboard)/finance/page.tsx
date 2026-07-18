@@ -69,7 +69,7 @@ export default function FinancePage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <span className="text-2xl">💰</span>

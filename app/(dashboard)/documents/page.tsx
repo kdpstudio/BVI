@@ -58,7 +58,7 @@ export default function DocumentsPage() {
     <div className="flex flex-col gap-5">
 
       {/* Page header */}
-      <div className="flex items-center justify-between flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between flex-shrink-0 gap-3">
         <div>
           <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-1">{'// REX · AI OPERATIONS MANAGER'}</div>
           <div className="font-orbitron text-2xl text-text">
@@ -86,7 +86,7 @@ export default function DocumentsPage() {
         <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// DOCUMENT GENERATOR'}</div>
 
         {/* Doc type selector */}
-        <div className="flex gap-2 mb-5">
+        <div className="flex flex-wrap gap-2 mb-5">
           {(['proposal', 'contract', 'brief'] as DocType[]).map(t => (
             <button
               key={t}
