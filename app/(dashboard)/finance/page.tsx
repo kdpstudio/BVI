@@ -11,6 +11,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Transaction } from '@/types'
 import Link from 'next/link'
 import { StatusDot } from '@/components/ui/status-dot'
+import { MetricCardSkeleton } from '@/components/ui/metric-card-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 
 interface PLData {
   income: number
@@ -85,11 +87,7 @@ export default function FinancePage() {
 
       {/* P&L Cards */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-surface border border-border p-4 h-24 animate-pulse" />
-          ))}
-        </div>
+        <MetricCardSkeleton count={4} />
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard label="Total Income" value={pl ? fmt(pl.income) : '£0.00'} trend={pl && pl.incomeChange >= 0 ? 'up' : 'down'} trendValue={pl ? pct(pl.incomeChange) : undefined} />
@@ -110,13 +108,24 @@ export default function FinancePage() {
       </div>
 
       {/* P&L Chart */}
-      <CyberCard variant="purple" title="REVENUE VS EXPENSES — LAST 6 MONTHS">
-        <PlChart data={buildChartData(transactions)} />
-      </CyberCard>
+      {transactions.length > 0 ? (
+        <CyberCard variant="purple" title="REVENUE VS EXPENSES — LAST 6 MONTHS">
+          <PlChart data={buildChartData(transactions)} />
+        </CyberCard>
+      ) : null}
 
       {/* Transaction List */}
       <CyberCard variant="ghost" title="TRANSACTIONS">
-        <TransactionTable transactions={transactions} onRefresh={fetchData} />
+        {transactions.length === 0 && !loading ? (
+          <EmptyState
+            symbol="▦"
+            title="NO TRANSACTIONS YET"
+            description="Upload a bank CSV or add transactions manually to start tracking your finances."
+            color="#00c8ff"
+          />
+        ) : (
+          <TransactionTable transactions={transactions} onRefresh={fetchData} />
+        )}
       </CyberCard>
     </div>
   )

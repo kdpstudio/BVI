@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { MetricCard } from '@/components/ui/metric-card'
 import { PlChart } from '@/components/finance/pl-chart'
 import Link from 'next/link'
+import { MetricCardSkeleton } from '@/components/ui/metric-card-skeleton'
+import { EmptyState } from '@/components/ui/empty-state'
 
 interface GrowthData {
   months: { month: string; income: number; expenses: number; net: number }[]
@@ -48,9 +50,7 @@ export default function GrowthPage() {
 
       {/* Metrics */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="bg-surface border border-border p-4 h-24 animate-pulse" />)}
-        </div>
+        <MetricCardSkeleton count={4} />
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard label="MoM Growth" value={data ? pct(data.momGrowth) : '—'} trend={data && data.momGrowth >= 0 ? 'up' : 'down'} trendValue="" />
@@ -75,9 +75,13 @@ export default function GrowthPage() {
         {data?.months?.length ? (
           <PlChart data={data.months} />
         ) : (
-          <div className="h-40 flex items-center justify-center text-textMuted font-rajdhani text-sm">
-            Upload transactions to see revenue trends
-          </div>
+          <EmptyState
+            symbol="⟁"
+            title="NO REVENUE DATA YET"
+            description="Upload your transactions and MAX will build your revenue trend analysis."
+            action={{ label: 'GO TO FINANCE', href: '/finance' }}
+            color="#ffb800"
+          />
         )}
       </div>
 

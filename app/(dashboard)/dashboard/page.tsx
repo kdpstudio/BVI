@@ -11,6 +11,7 @@ import { timeAgo } from '@/lib/utils'
 import { HealthRing } from '@/components/dashboard/health-ring'
 import { DashboardMetrics } from '@/components/dashboard/dashboard-metrics'
 import { BriefTrigger } from '@/components/dashboard/brief-trigger'
+import { EmptyState } from '@/components/ui/empty-state'
 
 const AGENTS: { id: Agent; emoji: string; role: string }[] = [
   { id: 'FINN', emoji: '💰', role: 'AI Chief Financial Officer' },
@@ -227,7 +228,7 @@ export default async function DashboardPage() {
             </div>
             <div className="divide-y divide-white/[0.03]">
               {(agentLogs || []).length === 0 ? (
-                <p className="px-4 py-6 text-textMuted text-sm font-rajdhani">No agent activity yet. Start chatting with your agents.</p>
+                <EmptyState symbol="◎" title="NO ACTIVITY YET" description="Chat with any agent to see your activity log populate here." action={{ label: 'TALK TO ARIA', href: '/agents/aria' }} color="#00c8ff" />
               ) : (
                 (agentLogs || []).slice(0, 6).map((log, i) => (
                   <div key={i} className="flex items-start gap-3 px-4 py-2.5 hover:bg-cyan/[0.02] transition-colors">
@@ -266,9 +267,7 @@ export default async function DashboardPage() {
                 style={{ borderColor: 'rgba(0,200,255,0.2)', color: 'rgba(0,200,255,0.6)' }}>FINN LIVE</Link>
             </div>
             {(recentTxs || []).length === 0 ? (
-              <div className="px-4 py-6 text-textMuted text-sm font-rajdhani">
-                No transactions yet. <Link href="/finance" className="text-cyan hover:underline">Upload →</Link>
-              </div>
+              <EmptyState symbol="▦" title="NO TRANSACTIONS YET" description="Upload a bank CSV to give FINN something to work with." action={{ label: 'UPLOAD CSV', href: '/finance' }} color="#00c8ff" />
             ) : (
               <div className="divide-y divide-white/[0.03]">
                 {(recentTxs || []).map((tx, i) => (

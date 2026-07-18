@@ -59,7 +59,7 @@ function FoundingCard({ tierId, currency, onSelect, loading }: { tierId: Tier; c
         <span className="font-orbitron text-3xl text-text">{symbol}{price.toLocaleString()}</span>
         <span className="text-textMuted text-sm font-rajdhani"> once</span>
       </div>
-      <p className="text-textMuted text-xs font-rajdhani mb-1">Lifetime access — pay once, own forever</p>
+      <p className="text-textMuted text-xs font-rajdhani mb-1">Pay once. Yours forever. No renewal, no price hikes.</p>
       <p className="text-textMuted text-xs font-rajdhani mb-4">
         {tier.transactions.toLocaleString()} transactions/mo · {tier.users === 1 ? '1 user' : `Up to ${tier.users} users`}
       </p>
@@ -99,7 +99,7 @@ function RegularCard({ tierId, billingCycle, currency, onSelect, loading }: { ti
         <span className="text-textMuted text-sm font-rajdhani">{period}</span>
       </div>
       <p className="text-textMuted text-xs font-rajdhani mb-4">
-        {tierId === 'free' ? 'No credit card required' : `${tier.transactions.toLocaleString()} transactions/mo · ${tier.users === 1 ? '1 user' : `Up to ${tier.users} users`}`}
+        {tierId === 'free' ? 'No credit card. No catch.' : `${tier.transactions.toLocaleString()} transactions/mo · ${tier.users === 1 ? '1 user' : `Up to ${tier.users} users`}`}
       </p>
       <ul className="flex flex-col gap-2 mb-6 flex-1">
         {tier.features.map(f => (
@@ -160,8 +160,9 @@ export default function PricingPage() {
 
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
-          <h1 className="font-orbitron text-3xl md:text-4xl text-text mb-3">CHOOSE YOUR INTELLIGENCE TIER</h1>
-          <p className="text-textMuted font-rajdhani text-lg">Scale from solo freelancer to full agency</p>
+          <div className="font-mono-tech text-[10px] tracking-[4px] text-cyan/50 mb-3">{'// SELECT INTELLIGENCE TIER'}</div>
+          <h1 className="font-orbitron text-3xl md:text-4xl text-text mb-3">YOUR AI TEAM. YOUR PRICE.</h1>
+          <p className="text-textMuted font-rajdhani text-lg">Start free. Upgrade when your business demands it. No lock-in.</p>
         </div>
 
         {/* Founding Member Section */}
@@ -170,7 +171,7 @@ export default function PricingPage() {
             <Zap size={18} className="text-yellow flex-shrink-0" />
             <div>
               <p className="font-orbitron text-xs text-yellow">FOUNDING MEMBER — LIFETIME ACCESS</p>
-              <p className="text-textMuted text-xs font-rajdhani mt-0.5">Pay once, own BVI forever. Limited spots — gone when sold out.</p>
+              <p className="text-textMuted text-xs font-rajdhani mt-0.5">Pay once. Own BVI forever. No monthly fees — ever. Limited spots remaining.</p>
             </div>
             <div className="ml-auto flex items-center gap-4">
               {CURRENCIES.map(c => (
@@ -198,7 +199,7 @@ export default function PricingPage() {
         {/* Regular Subscription Section */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-orbitron text-lg text-text">REGULAR PLANS</h2>
+            <h2 className="font-orbitron text-lg text-text">MONTHLY & ANNUAL PLANS</h2>
             <div className="flex border border-border">
               <button onClick={() => setBillingCycle('monthly')} className={`px-4 py-2 font-orbitron text-xs transition-all ${billingCycle === 'monthly' ? 'bg-cyan text-background' : 'text-textMuted hover:text-text'}`}>
                 MONTHLY
@@ -218,7 +219,7 @@ export default function PricingPage() {
 
         {/* Comparison table */}
         <div className="mb-16">
-          <h2 className="font-orbitron text-lg text-text mb-6 text-center">FEATURE COMPARISON</h2>
+          <h2 className="font-orbitron text-lg text-text mb-6 text-center">WHAT YOU GET AT EACH TIER</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -245,10 +246,10 @@ export default function PricingPage() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-8 border-t border-border pt-8 text-textMuted text-xs font-orbitron">
-          <span>🔒 SECURED BY STRIPE</span>
+          <span>🔒 PAYMENTS SECURED BY STRIPE</span>
           <span>🤖 POWERED BY CLAUDE AI</span>
           <span>🇬🇧 UK GDPR COMPLIANT</span>
-          <span>🇬🇧 UK · 🇺🇸 US COMING SOON · 🇨🇦 CA COMING SOON</span>
+          <span>✦ CANCEL ANYTIME — NO LOCK-IN</span>
         </div>
       </div>
     </div>
