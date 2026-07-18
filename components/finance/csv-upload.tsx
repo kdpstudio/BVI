@@ -77,15 +77,30 @@ export function CsvUpload({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       {result && (
-        <div className="bg-surface border border-green/30 p-4 flex items-center gap-3">
-          <CheckCircle size={18} className="text-green flex-shrink-0" />
-          <div>
-            <p className="text-green font-orbitron text-xs">IMPORT COMPLETE</p>
-            <p className="text-textMuted text-sm font-rajdhani">
-              {result.imported} transactions imported
-              {result.flagged > 0 && `, ${result.flagged} flagged for review`}
-            </p>
+        <div className="flex flex-col gap-2">
+          <div className="bg-surface border border-green/30 p-4 flex items-center gap-3">
+            <CheckCircle size={18} className="text-green flex-shrink-0" />
+            <div>
+              <p className="text-green font-orbitron text-xs">IMPORT COMPLETE</p>
+              <p className="text-textMuted text-sm font-rajdhani">
+                {result.imported} transactions imported
+                {result.flagged > 0 && `, ${result.flagged} flagged for review`}
+              </p>
+            </div>
           </div>
+          {result.errors.length > 0 && (
+            <div className="bg-surface border border-yellow/20 p-3">
+              <p className="font-orbitron text-[10px] text-yellow/70 tracking-[2px] mb-1">{'// ROWS SKIPPED'}</p>
+              <ul className="flex flex-col gap-0.5">
+                {result.errors.slice(0, 5).map((e, i) => (
+                  <li key={i} className="text-textMuted text-xs font-rajdhani">• {e}</li>
+                ))}
+                {result.errors.length > 5 && (
+                  <li className="text-textMuted text-xs font-rajdhani">• ...and {result.errors.length - 5} more</li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>

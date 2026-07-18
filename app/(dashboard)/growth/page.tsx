@@ -56,7 +56,7 @@ export default function GrowthPage() {
           <MetricCard label="MoM Growth" value={data ? pct(data.momGrowth) : '—'} trend={data && data.momGrowth >= 0 ? 'up' : 'down'} trendValue="" />
           <MetricCard label="Avg Monthly Revenue" value={data ? fmt(data.avgIncome) : '—'} variant="purple" />
           <MetricCard label="Best Month" value={data?.bestMonth?.month || '—'} subtitle={data ? fmt(data.bestMonth.income) : ''} />
-          <MetricCard label="Next Month Forecast" value={data ? fmt(data.avgIncome * 1.05) : '—'} subtitle="Estimated" variant="purple" />
+          <MetricCard label="Next Month Forecast" value={data && data.avgIncome > 0 ? fmt(data.avgIncome * (1 + Math.min(Math.max(data.momGrowth / 100, -0.3), 0.3))) : '—'} subtitle={data && data.avgIncome > 0 ? `Based on ${data.momGrowth >= 0 ? '+' : ''}${data.momGrowth.toFixed(1)}% trend` : 'No data yet'} variant="purple" />
         </div>
       )}
 

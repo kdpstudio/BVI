@@ -12,7 +12,16 @@ export async function GET() {
     const country = profile?.country || 'UK'
 
     const now = new Date()
-    const yearStart = `${now.getFullYear()}-01-01`
+    // UK tax year runs Apr 6 – Apr 5; US/CA use calendar year
+    let yearStart: string
+    if (country === 'UK') {
+      const taxYearStartYear = now.getMonth() < 3 || (now.getMonth() === 3 && now.getDate() < 6)
+        ? now.getFullYear() - 1
+        : now.getFullYear()
+      yearStart = `${taxYearStartYear}-04-06`
+    } else {
+      yearStart = `${now.getFullYear()}-01-01`
+    }
     const { data: txs } = await supabase.from('transactions').select('amount, amount_gbp, type').eq('user_id', user.id).gte('date', yearStart)
 
     const annualIncome = (txs || []).filter(t => t.type === 'income').reduce((s, t) => s + (t.amount_gbp || t.amount), 0)

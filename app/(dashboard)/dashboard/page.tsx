@@ -7,6 +7,7 @@ import { calculateHealthScore } from '@/lib/aria/health'
 import { timeAgo } from '@/lib/utils'
 import { HealthRing } from '@/components/dashboard/health-ring'
 import { DashboardMetrics } from '@/components/dashboard/dashboard-metrics'
+import { BriefTrigger } from '@/components/dashboard/brief-trigger'
 
 const AGENTS: { id: Agent; emoji: string; role: string }[] = [
   { id: 'FINN', emoji: '💰', role: 'AI Chief Financial Officer' },
@@ -116,6 +117,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4 min-h-full">
+      <BriefTrigger />
 
       {/* Page header */}
       <div className="flex items-center justify-between flex-shrink-0">
