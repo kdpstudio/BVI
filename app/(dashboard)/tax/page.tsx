@@ -139,7 +139,7 @@ export default function TaxPage() {
           {['Estimate my tax bill', 'What can I deduct?', 'Next deadline?', 'Am I VAT registered?'].map(q => (
             <Link
               key={q}
-              href="/agents/sage"
+              href={`/agents/sage?message=${encodeURIComponent(q)}`}
               className="border border-green/20 text-textMuted text-xs font-rajdhani px-3 py-1.5 hover:border-green/50 hover:text-text transition-colors"
             >
               <FileText size={10} className="inline mr-1.5 text-green" />{q}

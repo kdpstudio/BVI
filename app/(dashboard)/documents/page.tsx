@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { CyberButton } from '@/components/ui/cyber-button'
 import { CyberInput } from '@/components/ui/cyber-input'
-import { FileText, Copy, CheckCheck } from 'lucide-react'
+import { FileText, Copy, CheckCheck, Download, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import ReactMarkdown from 'react-markdown'
 
 type DocType = 'proposal' | 'contract' | 'brief'
 
@@ -52,6 +53,16 @@ export default function DocumentsPage() {
     await navigator.clipboard.writeText(generatedDoc)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleDownload() {
+    const blob = new Blob([generatedDoc], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${docType}-${Date.now()}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -130,13 +141,28 @@ export default function DocumentsPage() {
           <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
           <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
           <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60">{'// GENERATED DOCUMENT'}</div>
-            <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-cyan transition-colors">
-              {copied ? <><CheckCheck size={12} className="text-green" /> COPIED</> : <><Copy size={12} /> COPY</>}
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={handleGenerate} disabled={loading} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-orange-400 transition-colors disabled:opacity-40">
+                <RefreshCw size={11} /> REGENERATE
+              </button>
+              <button onClick={handleDownload} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-cyan transition-colors">
+                <Download size={11} /> DOWNLOAD
+              </button>
+              <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-cyan transition-colors">
+                {copied ? <><CheckCheck size={12} className="text-green" /> COPIED</> : <><Copy size={12} /> COPY</>}
+              </button>
+            </div>
           </div>
-          <pre className="text-text text-sm font-rajdhani leading-relaxed whitespace-pre-wrap">{generatedDoc}</pre>
+          <div className="text-text text-sm font-rajdhani leading-relaxed prose prose-invert prose-sm max-w-none
+            [&_h1]:font-orbitron [&_h1]:text-cyan [&_h1]:text-base [&_h1]:tracking-wider [&_h1]:mb-2
+            [&_h2]:font-orbitron [&_h2]:text-cyan/80 [&_h2]:text-sm [&_h2]:tracking-wider [&_h2]:mb-1.5 [&_h2]:mt-4
+            [&_h3]:font-orbitron [&_h3]:text-textMuted [&_h3]:text-xs [&_h3]:uppercase [&_h3]:tracking-widest [&_h3]:mt-3
+            [&_strong]:text-text [&_ul]:text-textMuted [&_ol]:text-textMuted [&_li]:my-0.5
+            [&_hr]:border-cyan/20 [&_p]:mb-2">
+            <ReactMarkdown>{generatedDoc}</ReactMarkdown>
+          </div>
         </div>
       )}
 

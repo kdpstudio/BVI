@@ -1,6 +1,7 @@
 'use client'
 
 import { use } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import { ChatInterface } from '@/components/agents/chat-interface'
 import { QuickActions } from '@/components/agents/quick-actions'
@@ -30,6 +31,8 @@ const THEME: Record<Agent, string> = {
 
 export default function AgentPage({ params }: { params: Promise<{ agent: string }> }) {
   const { agent: agentParam } = use(params)
+  const searchParams = useSearchParams()
+  const initialMessage = searchParams.get('message') || undefined
 
   if (!VALID_AGENTS.includes(agentParam.toLowerCase())) notFound()
 
@@ -56,7 +59,7 @@ export default function AgentPage({ params }: { params: Promise<{ agent: string 
           </div>
         </div>
         <div className="flex-1 min-h-0">
-          <ChatInterface agent={agentId} />
+          <ChatInterface agent={agentId} initialMessage={initialMessage} />
         </div>
         <AiDisclaimer />
       </div>

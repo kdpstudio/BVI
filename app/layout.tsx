@@ -3,6 +3,7 @@ import { Orbitron, Rajdhani, Share_Tech_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
 import { CookieBanner } from '@/components/ui/cookie-banner'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 const orbitron = Orbitron({
@@ -46,6 +47,7 @@ export const metadata: Metadata = {
   },
   keywords: ['freelancer bookkeeping', 'AI accountant', 'tax estimates UK', 'freelance back office', 'AI CFO', 'self-employed tax', 'invoice management'],
   robots: { index: true, follow: true },
+  themeColor: '#00c8ff',
 }
 
 export default function RootLayout({
@@ -59,6 +61,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
           {children}
           <CookieBanner />
+          <Analytics />
           <Toaster
             theme="dark"
             toastOptions={{

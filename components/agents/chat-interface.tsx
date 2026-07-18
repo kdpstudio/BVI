@@ -8,6 +8,34 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
+const SUGGESTED_PROMPTS: Record<Agent, { label: string; message: string }[]> = {
+  FINN: [
+    { label: 'P&L this month', message: 'Generate a P&L report for this month with all categories broken down.' },
+    { label: 'Cash flow check', message: 'Give me a cash flow summary and tell me what my runway looks like.' },
+    { label: 'Flag anything unusual', message: 'Review my recent transactions and flag anything unusual or worth noting.' },
+  ],
+  SAGE: [
+    { label: 'Estimate my tax bill', message: 'Estimate my tax liability for this tax year based on my income so far.' },
+    { label: 'Find my deductions', message: 'Based on my transactions, what deductions am I potentially missing?' },
+    { label: 'Next deadline?', message: 'What are my upcoming tax deadlines and payment dates?' },
+  ],
+  ARIA: [
+    { label: 'Business health check', message: 'Give me a full business health check and score out of 10.' },
+    { label: 'Strategic brief', message: 'Give me a strategic briefing on the state of my business this week.' },
+    { label: 'Biggest risks', message: 'What are the biggest risks to my business right now and how should I address them?' },
+  ],
+  MAX: [
+    { label: 'Revenue trends', message: "Analyse my revenue trends and tell me what's driving growth or decline." },
+    { label: 'Should I raise my rates?', message: 'Based on my revenue data, should I raise my rates? By how much?' },
+    { label: 'Growth report', message: 'Give me a growth report with specific recommendations for next month.' },
+  ],
+  REX: [
+    { label: 'Draft a proposal', message: 'Help me draft a professional project proposal. Ask me for the details you need.' },
+    { label: 'Contract template', message: 'Generate a freelance service agreement template for my business type.' },
+    { label: 'Compliance check', message: 'What compliance items do I need to be aware of for my country and business type?' },
+  ],
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
@@ -115,22 +143,33 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
   }, [])
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 min-h-0">
+    <div className="flex flex-col h-full" role="region" aria-label={`Chat with ${agent}`}>
+      <div className="flex-1 overflow-y-auto p-4 min-h-0" aria-live="polite" aria-atomic="false">
         {messages.length === 0 && !streaming && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-full gap-4"
+            className="flex flex-col items-center justify-center h-full gap-6 py-8"
           >
             <motion.div
               animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.5, 0.3] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className={`text-5xl`}
+              className="text-5xl"
             >
               {theme.emoji}
             </motion.div>
             <p className={`font-orbitron text-xs ${theme.text} opacity-40`}>START A CONVERSATION WITH {agent}</p>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              {SUGGESTED_PROMPTS[agent].map(({ label, message }) => (
+                <button
+                  key={label}
+                  onClick={() => { setInput(message); sendMessage(message) }}
+                  className={`text-left px-4 py-2.5 border border-border text-textMuted text-xs font-rajdhani hover:${theme.border}/40 hover:text-text transition-all`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
         <AnimatePresence>
@@ -187,6 +226,7 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
             placeholder={`Message ${agent}...`}
+            aria-label={`Message ${agent}`}
             rows={1}
             disabled={streaming}
             className="flex-1 bg-transparent px-4 py-3 text-text font-rajdhani text-sm outline-none resize-none disabled:opacity-50 placeholder-textDim"
@@ -197,6 +237,7 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
             disabled={!input.trim() || streaming}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            aria-label="Send message"
             className={`px-4 ${theme.bg} text-background font-orbitron text-xs disabled:opacity-30 flex items-center gap-2 flex-shrink-0 transition-opacity`}
           >
             <Send size={14} />
