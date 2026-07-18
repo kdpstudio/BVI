@@ -26,8 +26,26 @@ const shareTechMono = Share_Tech_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'BVI — Black Vault Intelligence',
-  description: 'AI-powered back office for freelancers and agencies',
+  title: {
+    default: 'Black Vault Intelligence — AI Back Office for Freelancers',
+    template: '%s | Black Vault Intelligence',
+  },
+  description: 'AI-powered back office for freelancers and agencies. Automated bookkeeping, tax intelligence, proposals, and growth analysis — all in one vault.',
+  metadataBase: new URL('https://www.blackvaultintelligence.com'),
+  openGraph: {
+    type: 'website',
+    siteName: 'Black Vault Intelligence',
+    title: 'Black Vault Intelligence — AI Back Office for Freelancers',
+    description: 'AI-powered back office for freelancers and agencies. Automated bookkeeping, tax intelligence, proposals, and growth analysis.',
+    url: 'https://www.blackvaultintelligence.com',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Black Vault Intelligence — AI Back Office for Freelancers',
+    description: 'AI-powered back office for freelancers and agencies. Automated bookkeeping, tax intelligence, proposals, and growth analysis.',
+  },
+  keywords: ['freelancer bookkeeping', 'AI accountant', 'tax estimates UK', 'freelance back office', 'AI CFO', 'self-employed tax', 'invoice management'],
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({
