@@ -11,6 +11,7 @@ import { AGENTS } from '@/lib/agents/config'
 
 const VALID_AGENTS = ['finn', 'sage', 'aria', 'max', 'rex']
 
+
 const CAPABILITIES: Record<Agent, string[]> = {
   FINN: ['Transaction categorisation', 'P&L reports', 'Cash flow analysis', 'CSV import', 'Financial Q&A'],
   SAGE: ['Tax estimates (UK/US/CA)', 'Deadline tracking', 'Deduction finder', 'Self-assessment help', 'VAT guidance'],
