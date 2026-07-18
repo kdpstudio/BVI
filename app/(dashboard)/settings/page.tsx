@@ -37,14 +37,21 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile>({ full_name: '', business_name: '', business_type: '', country: 'UK', currency: 'GBP', city: '', tier: 'free' })
   const [saving, setSaving] = useState(false)
   const [notifications, setNotifications] = useState({ weekly_report: true, tax_reminders: true, agent_updates: false, marketing: false })
+  const [savingNotifications, setSavingNotifications] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
       supabase.from('users').select('*').eq('id', user.id).single().then(({ data }) => {
-        if (data) setProfile({ full_name: data.full_name || '', business_name: data.business_name || '', business_type: data.business_type || '', country: data.country || 'UK', currency: data.currency || 'GBP', city: data.city || '', tier: data.tier || 'free' })
+        if (data) {
+          setProfile({ full_name: data.full_name || '', business_name: data.business_name || '', business_type: data.business_type || '', country: data.country || 'UK', currency: data.currency || 'GBP', city: data.city || '', tier: data.tier || 'free' })
+          if (data.notification_prefs) setNotifications(data.notification_prefs)
+        }
       })
     })
   }, [])
@@ -62,6 +69,40 @@ export default function SettingsPage() {
       toast.error('Failed to save profile')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleSaveNotifications() {
+    setSavingNotifications(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+      const { error } = await supabase.from('users').update({ notification_prefs: notifications }).eq('id', user.id)
+      if (error) throw error
+      toast.success('Notification preferences saved')
+    } catch {
+      toast.error('Failed to save preferences')
+    } finally {
+      setSavingNotifications(false)
+    }
+  }
+
+  async function handleChangePassword() {
+    if (newPassword.length < 8) { toast.error('Password must be at least 8 characters'); return }
+    if (newPassword !== confirmPassword) { toast.error('Passwords do not match'); return }
+    setSavingPassword(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+      toast.success('Password updated successfully')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch {
+      toast.error('Failed to update password')
+    } finally {
+      setSavingPassword(false)
     }
   }
 
@@ -227,7 +268,7 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
-          <CyberButton className="mt-4" onClick={() => toast.success('Notification preferences saved')}>SAVE PREFERENCES</CyberButton>
+          <CyberButton className="mt-4" onClick={handleSaveNotifications} loading={savingNotifications}>SAVE PREFERENCES</CyberButton>
         </div>
       )}
 
@@ -241,10 +282,10 @@ export default function SettingsPage() {
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
             <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// CHANGE PASSWORD'}</div>
             <div className="flex flex-col gap-3 mb-4">
-              <CyberInput label="New Password" type="password" placeholder="••••••••" />
-              <CyberInput label="Confirm Password" type="password" placeholder="••••••••" />
+              <CyberInput label="New Password" type="password" placeholder="Min 8 characters" value={newPassword} onChange={e => setNewPassword(e.target.value)} showPasswordToggle />
+              <CyberInput label="Confirm Password" type="password" placeholder="Repeat password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} showPasswordToggle />
             </div>
-            <CyberButton onClick={() => toast.info('Password change via magic link — check your email')}>UPDATE PASSWORD</CyberButton>
+            <CyberButton onClick={handleChangePassword} loading={savingPassword}>UPDATE PASSWORD</CyberButton>
           </div>
 
           <div className="relative bg-surface border border-cyan/20 p-5">

@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+
+export const metadata: Metadata = { title: 'Vault Overview' }
 import { AgentBadge } from '@/components/ui/agent-badge'
 import { Agent } from '@/types'
 import Link from 'next/link'

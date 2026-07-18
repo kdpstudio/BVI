@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       prevNet: prev.net,
       incomeChange: prev.income > 0 ? ((cur.income - prev.income) / prev.income) * 100 : 0,
       expensesChange: prev.expenses > 0 ? ((cur.expenses - prev.expenses) / prev.expenses) * 100 : 0,
-      netChange: prev.net > 0 ? ((cur.net - prev.net) / prev.net) * 100 : 0,
+      netChange: prev.net !== 0 ? ((cur.net - prev.net) / Math.abs(prev.net)) * 100 : 0,
     })
   } catch {
     return NextResponse.json({ error: 'Failed to fetch P&L' }, { status: 500 })
