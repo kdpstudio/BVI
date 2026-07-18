@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -37,7 +37,14 @@ type SignupForm = z.infer<typeof signupSchema>
 export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [checkEmail, setCheckEmail] = useState('')
+  const [referralCode, setReferralCode] = useState('')
   const router = useRouter()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const ref = params.get('ref')
+    if (ref) setReferralCode(ref)
+  }, [])
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -58,6 +65,7 @@ export default function SignupPage() {
       city: data.city,
       business_name: data.business_name,
       business_type: data.business_type,
+      referral_code: referralCode || undefined,
     }) as SignUpResult
     if (result.error) {
       toast.error(result.error)

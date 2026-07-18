@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const protectedRoutes = ['/dashboard', '/agents', '/finance', '/tax', '/growth', '/documents', '/settings', '/onboarding']
+  const protectedRoutes = ['/dashboard', '/agents', '/finance', '/tax', '/growth', '/documents', '/settings', '/analytics']
   const authRoutes = ['/login', '/signup']
 
   const pathname = request.nextUrl.pathname
@@ -45,8 +45,26 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthRoute && user) {
+    // Check if onboarded — redirect to onboarding if not
+    const { data: profile } = await supabase.from('users').select('onboarded').eq('id', user.id).single()
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = profile?.onboarded ? '/dashboard' : '/onboarding'
+    return NextResponse.redirect(url)
+  }
+
+  // Redirect logged-in users from onboarding if already onboarded
+  if (pathname.startsWith('/onboarding') && user) {
+    const { data: profile } = await supabase.from('users').select('onboarded').eq('id', user.id).single()
+    if (profile?.onboarded) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  if (!user && pathname.startsWith('/onboarding')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 

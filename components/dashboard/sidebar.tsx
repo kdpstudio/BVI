@@ -14,6 +14,7 @@ const NAV = [
   { href: '/tax', label: 'TAX VAULT', symbol: '◎' },
   { href: '/growth', label: 'GROWTH', symbol: '⟁' },
   { href: '/documents', label: 'DOCUMENTS', symbol: '⊡' },
+  { href: '/analytics', label: 'ANALYTICS', symbol: '◬' },
 ]
 
 const AGENT_MINI = [

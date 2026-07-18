@@ -35,6 +35,7 @@ export default function OnboardingPage() {
       if (!user) throw new Error('Not authenticated')
       const { error } = await supabase.from('users').update({ ...form, onboarded: true }).eq('id', user.id)
       if (error) throw error
+      fetch('/api/email/welcome').catch(() => null)
       toast.success('Welcome to BVI!')
       router.push('/dashboard')
     } catch {

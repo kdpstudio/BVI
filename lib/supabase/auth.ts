@@ -14,6 +14,7 @@ export interface SignUpData {
   city: string
   business_name: string
   business_type: string
+  referral_code?: string
 }
 
 export async function signIn(email: string, password: string): Promise<ApiResponse<User>> {
@@ -41,6 +42,14 @@ export async function signUp(formData: SignUpData): Promise<SignUpResult> {
   })
   if (error) return { error: error.message }
   if (data.user) {
+    let referredBy: string | null = null
+    if (formData.referral_code) {
+      const allUsers = await supabase.from('users').select('id')
+      for (const u of allUsers.data || []) {
+        const code = Buffer.from(u.id).toString('base64').slice(0, 10).replace(/[^a-zA-Z0-9]/g, 'x')
+        if (code === formData.referral_code) { referredBy = u.id; break }
+      }
+    }
     await supabase.from('users').upsert({
       id: data.user.id,
       email: formData.email,
@@ -50,6 +59,7 @@ export async function signUp(formData: SignUpData): Promise<SignUpResult> {
       city: formData.city,
       business_name: formData.business_name,
       business_type: formData.business_type,
+      ...(referredBy ? { referred_by: referredBy } : {}),
     })
   }
   return { data: data.user as unknown as User, needsEmailConfirm: !data.session }

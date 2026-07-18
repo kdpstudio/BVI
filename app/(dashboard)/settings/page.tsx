@@ -42,6 +42,8 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
+  const [referralCode, setReferralCode] = useState('')
+  const [referralCount, setReferralCount] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
@@ -54,6 +56,7 @@ export default function SettingsPage() {
         }
       })
     })
+    fetch('/api/referral').then(r => r.json()).then(d => { setReferralCode(d.code || ''); setReferralCount(d.referrals || 0) }).catch(() => null)
   }, [])
 
   async function handleSaveProfile() {
@@ -235,6 +238,29 @@ export default function SettingsPage() {
                 OPEN BILLING PORTAL →
               </button>
             )}
+          </div>
+
+          <div className="relative bg-surface border border-cyan/20 p-5">
+            <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+            <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+            <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-3">{'// REFERRAL PROGRAMME'}</div>
+            <p className="text-textMuted font-rajdhani text-sm mb-4">Share BVI with other freelancers. You get 1 month free for every paying referral.</p>
+            {referralCode && (
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1 bg-background border border-cyan/20 px-3 py-2 font-mono-tech text-xs text-cyan tracking-widest">
+                  {typeof window !== 'undefined' ? `${window.location.origin}/signup?ref=${referralCode}` : `/signup?ref=${referralCode}`}
+                </div>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${referralCode}`); toast.success('Referral link copied') }}
+                  className="font-orbitron text-[10px] text-cyan border border-cyan/30 px-3 py-2 hover:bg-cyan/10 transition-colors tracking-wider"
+                >
+                  COPY
+                </button>
+              </div>
+            )}
+            <p className="font-mono-tech text-[10px] text-textMuted tracking-[2px]">{referralCount} referral{referralCount !== 1 ? 's' : ''} so far</p>
           </div>
         </div>
       )}
