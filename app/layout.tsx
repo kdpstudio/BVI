@@ -48,6 +48,12 @@ export const metadata: Metadata = {
   keywords: ['freelancer bookkeeping', 'AI accountant', 'tax estimates UK', 'freelance back office', 'AI CFO', 'self-employed tax', 'invoice management'],
   robots: { index: true, follow: true },
   themeColor: '#00c8ff',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'BVI',
+  },
 }
 
 export default function RootLayout({

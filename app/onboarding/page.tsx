@@ -8,7 +8,13 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
+
+const QUICK_START = [
+  { symbol: '▦', color: '#00c8ff', title: 'Import transactions', desc: 'Upload a bank CSV in Finance → FINN will categorise everything automatically.' },
+  { symbol: '◎', color: '#00ff88', title: 'Check your tax position', desc: 'Head to Tax Vault → SAGE will estimate your current liability and deadlines.' },
+  { symbol: '⟁', color: '#ffb800', title: 'Get a growth report', desc: 'Visit Growth → MAX will analyse your revenue trends and give you recommendations.' },
+]
 
 const COUNTRIES = [
   { value: 'UK', label: '🇬🇧 United Kingdom', currency: 'GBP' },
@@ -21,6 +27,7 @@ const BUSINESS_TYPES = ['Freelancer', 'Consultant', 'Agency', 'Designer', 'Devel
 export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>(1)
+  const [launched, setLaunched] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ full_name: '', business_name: '', business_type: 'Freelancer', country: 'UK', currency: 'GBP', city: '' })
 
@@ -37,8 +44,7 @@ export default function OnboardingPage() {
       const { error } = await supabase.from('users').update({ ...form, onboarded: true }).eq('id', user.id)
       if (error) throw error
       fetch('/api/email/welcome').catch(() => null)
-      toast.success('Welcome to BVI!')
-      router.push('/dashboard')
+      setStep(4)
     } catch {
       toast.error('Failed to save profile')
     } finally {
@@ -46,37 +52,47 @@ export default function OnboardingPage() {
     }
   }
 
+  function handleLaunch() {
+    setLaunched(true)
+    toast.success('Welcome to BVI!')
+    router.push('/dashboard')
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Progress */}
-        <div className="mb-8">
-          <div className="flex gap-2 mb-2">
-            {([1, 2, 3] as Step[]).map(s => (
-              <div key={s} className={`flex-1 h-0.5 transition-all duration-500 ${s <= step ? 'bg-cyan' : 'bg-border'}`} />
-            ))}
+        {step < 4 && (
+          <div className="mb-8">
+            <div className="flex gap-2 mb-2">
+              {([1, 2, 3] as Step[]).map(s => (
+                <div key={s} className={`flex-1 h-0.5 transition-all duration-500 ${s <= step ? 'bg-cyan' : 'bg-border'}`} />
+              ))}
+            </div>
+            <div className="flex justify-between">
+              {['IDENTITY', 'BUSINESS', 'LOCATION'].map((label, i) => (
+                <span key={label} className={`font-mono-tech text-[8px] tracking-[2px] transition-colors ${i + 1 <= step ? 'text-cyan/60' : 'text-border'}`}>
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex justify-between">
-            {['IDENTITY', 'BUSINESS', 'LOCATION'].map((label, i) => (
-              <span key={label} className={`font-mono-tech text-[8px] tracking-[2px] transition-colors ${i + 1 <= step ? 'text-cyan/60' : 'text-border'}`}>
-                {label}
-              </span>
-            ))}
-          </div>
-        </div>
+        )}
 
-        <div className="mb-8">
-          <h1 className="font-orbitron text-xl text-text mb-2">
-            {step === 1 && 'WHO ARE YOU?'}
-            {step === 2 && 'YOUR BUSINESS'}
-            {step === 3 && 'YOUR LOCATION'}
-          </h1>
-          <p className="text-textMuted font-rajdhani text-sm">
-            {step === 1 && 'Tell BVI about yourself so your agents can personalise their advice.'}
-            {step === 2 && 'Help FINN, SAGE, and REX understand your business context.'}
-            {step === 3 && "Set your country so SAGE gives you the right tax guidance."}
-          </p>
-        </div>
+        {step < 4 && (
+          <div className="mb-8">
+            <h1 className="font-orbitron text-xl text-text mb-2">
+              {step === 1 && 'WHO ARE YOU?'}
+              {step === 2 && 'YOUR BUSINESS'}
+              {step === 3 && 'YOUR LOCATION'}
+            </h1>
+            <p className="text-textMuted font-rajdhani text-sm">
+              {step === 1 && 'Tell BVI about yourself so your agents can personalise their advice.'}
+              {step === 2 && 'Help FINN, SAGE, and REX understand your business context.'}
+              {step === 3 && "Set your country so SAGE gives you the right tax guidance."}
+            </p>
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {step === 1 && (
@@ -129,9 +145,36 @@ export default function OnboardingPage() {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        <p className="text-textMuted text-xs font-rajdhani text-center mt-6">Step {step} of 3</p>
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} className="flex flex-col gap-6">
+              <div className="text-center">
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-5xl mb-4"
+                >
+                  ⬡
+                </motion.div>
+                <h1 className="font-orbitron text-xl text-cyan mb-2" style={{ textShadow: '0 0 20px rgba(0,200,255,0.4)' }}>VAULT ACTIVATED</h1>
+                <p className="text-textMuted font-rajdhani text-sm">Your 5 AI agents are ready. Here&apos;s how to get the most out of BVI:</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                {QUICK_START.map(({ symbol, color, title, desc }) => (
+                  <div key={title} className="flex gap-3 p-3 border border-border bg-surface2">
+                    <span className="text-xl flex-shrink-0 mt-0.5" style={{ color }}>{symbol}</span>
+                    <div>
+                      <p className="font-orbitron text-xs mb-1" style={{ color }}>{title}</p>
+                      <p className="font-rajdhani text-xs text-textMuted">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <CyberButton onClick={handleLaunch} loading={launched}>ENTER THE VAULT →</CyberButton>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {step < 4 && <p className="text-textMuted text-xs font-rajdhani text-center mt-6">Step {step} of 3</p>}
       </div>
     </div>
   )

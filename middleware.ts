@@ -1,7 +1,31 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// IP-based sliding window rate limiter for agent chat endpoints
+const ipStore = new Map<string, { count: number; reset: number }>()
+const CHAT_WINDOW_MS = 60_000
+const CHAT_MAX_REQ = 30
+
+function checkIpRateLimit(ip: string): boolean {
+  const now = Date.now()
+  let entry = ipStore.get(ip)
+  if (!entry || entry.reset < now) {
+    entry = { count: 0, reset: now + CHAT_WINDOW_MS }
+    ipStore.set(ip, entry)
+  }
+  entry.count++
+  return entry.count <= CHAT_MAX_REQ
+}
+
 export async function middleware(request: NextRequest) {
+  // Rate limit agent chat routes by IP
+  if (request.method === 'POST' && /^\/api\/agents\/[^/]+\/chat$/.test(request.nextUrl.pathname)) {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? request.headers.get('x-real-ip') ?? 'unknown'
+    if (!checkIpRateLimit(ip)) {
+      return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429 })
+    }
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -31,7 +55,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const protectedRoutes = ['/dashboard', '/agents', '/finance', '/tax', '/growth', '/documents', '/settings', '/analytics']
+  const protectedRoutes = ['/dashboard', '/agents', '/finance', '/tax', '/growth', '/documents', '/settings', '/analytics', '/clients', '/invoice']
   const authRoutes = ['/login', '/signup']
 
   const pathname = request.nextUrl.pathname

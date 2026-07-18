@@ -1,0 +1,42 @@
+{
+  "name": "Black Vault Intelligence",
+  "short_name": "BVI",
+  "description": "AI-powered back office for freelancers and agencies",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#020408",
+  "theme_color": "#00c8ff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Finance",
+      "short_name": "FINN",
+      "description": "Open Finance dashboard",
+      "url": "/finance",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Chat with FINN",
+      "short_name": "FINN Chat",
+      "description": "Chat with your AI CFO",
+      "url": "/agents/finn",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

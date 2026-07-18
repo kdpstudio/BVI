@@ -14,6 +14,8 @@ const NAV = [
   { href: '/tax', label: 'TAX VAULT', symbol: '◎' },
   { href: '/growth', label: 'GROWTH', symbol: '⟁' },
   { href: '/documents', label: 'DOCUMENTS', symbol: '⊡' },
+  { href: '/clients', label: 'CLIENTS', symbol: '⊞' },
+  { href: '/invoice', label: 'INVOICES', symbol: '🧾' },
   { href: '/analytics', label: 'ANALYTICS', symbol: '◬' },
 ]
 
@@ -137,6 +139,8 @@ export function Sidebar() {
       <button
         className="fixed top-4 left-4 z-50 md:hidden border border-cyan/30 bg-surface p-2"
         onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+        aria-expanded={mobileOpen}
       >
         {mobileOpen ? <X size={16} className="text-cyan" /> : <Menu size={16} className="text-cyan" />}
       </button>
