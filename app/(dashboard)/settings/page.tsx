@@ -44,6 +44,8 @@ export default function SettingsPage() {
   const [savingPassword, setSavingPassword] = useState(false)
   const [referralCode, setReferralCode] = useState('')
   const [referralCount, setReferralCount] = useState(0)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -106,6 +108,20 @@ export default function SettingsPage() {
       toast.error('Failed to update password')
     } finally {
       setSavingPassword(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirm !== 'DELETE') { toast.error('Type DELETE to confirm'); return }
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/account/delete', { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      window.location.href = '/login'
+    } catch {
+      toast.error('Failed to delete account. Contact support.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -331,11 +347,28 @@ export default function SettingsPage() {
             <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
             <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
-            <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-3">{'// DATA & PRIVACY'}</div>
-            <p className="text-textMuted font-rajdhani text-sm mb-4">Download or delete your account data.</p>
-            <div className="flex gap-3">
-              <button className="text-cyan text-xs font-orbitron hover:opacity-80 transition-opacity tracking-wider">EXPORT DATA →</button>
-              <button className="text-pink text-xs font-orbitron hover:opacity-80 transition-opacity tracking-wider">DELETE ACCOUNT →</button>
+            <div className="font-mono-tech text-[10px] tracking-[3px] text-red/60 mb-3">{'// DANGER ZONE'}</div>
+            <p className="text-textMuted font-rajdhani text-sm mb-4">
+              Permanently delete your account and all data. This cancels any active subscription and cannot be undone.
+            </p>
+            <div className="flex flex-col gap-3">
+              <label className="font-mono-tech text-[10px] tracking-[3px] text-red/60">
+                TYPE <span className="text-red font-bold">DELETE</span> TO CONFIRM
+              </label>
+              <input
+                value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                placeholder="DELETE"
+                className="px-4 py-2.5 bg-background border border-red/30 text-text font-mono-tech text-sm outline-none focus:border-red/60 transition-colors tracking-widest w-48"
+              />
+              <CyberButton
+                variant="danger"
+                onClick={handleDeleteAccount}
+                loading={deleting}
+                disabled={deleteConfirm !== 'DELETE'}
+              >
+                DELETE MY ACCOUNT
+              </CyberButton>
             </div>
           </div>
         </div>

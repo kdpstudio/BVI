@@ -50,13 +50,20 @@ const AGENT_THEME: Record<Agent, { text: string; border: string; bg: string; emo
   REX:  { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400', emoji: '🗂️', glow: 'rgba(251,146,60,0.3)' },
 }
 
+interface UsageData { used: number; limit: number; tier: string }
+
 export function ChatInterface({ agent, initialMessage }: { agent: Agent; initialMessage?: string }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState(initialMessage || '')
   const [streaming, setStreaming] = useState(false)
   const [currentResponse, setCurrentResponse] = useState('')
+  const [usage, setUsage] = useState<UsageData | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const theme = AGENT_THEME[agent]
+
+  useEffect(() => {
+    fetch('/api/usage').then(r => r.json()).then(d => { if (!d.error) setUsage(d) }).catch(() => null)
+  }, [messages])
 
   useEffect(() => {
     const supabase = createClient()
@@ -229,7 +236,28 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
       </div>
 
       <div className={`border-t ${theme.border}/30 p-4 flex-shrink-0`}>
-        {messages.length > 0 && (
+        {usage && (
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex-1 h-0.5 bg-border overflow-hidden">
+              <div
+                className={`h-full transition-all ${usage.used >= usage.limit ? 'bg-red' : usage.used >= usage.limit * 0.8 ? 'bg-yellow' : theme.bg}`}
+                style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }}
+              />
+            </div>
+            <span className="font-mono-tech text-[9px] text-textDim whitespace-nowrap">
+              {usage.used}/{usage.limit}
+              {usage.tier === 'free' && usage.used >= usage.limit * 0.8 && (
+                <a href="/pricing" className="ml-2 text-cyan hover:opacity-80 transition-opacity">↑ UPGRADE</a>
+              )}
+            </span>
+            {messages.length > 0 && (
+              <button onClick={handleExport} className="flex items-center gap-1 text-[9px] font-orbitron text-textDim hover:text-text transition-colors whitespace-nowrap">
+                <Download size={9} /> EXPORT
+              </button>
+            )}
+          </div>
+        )}
+        {!usage && messages.length > 0 && (
           <div className="flex justify-end mb-2">
             <button onClick={handleExport} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-text transition-colors">
               <Download size={11} /> EXPORT CHAT
