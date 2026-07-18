@@ -8,20 +8,20 @@ import { LandingBackground } from '@/components/ui/landing-background'
 // ─── Data ───────────────────────────────────────────────────────────────────
 
 const AGENTS = [
-  { id: 'FINN', role: 'AI Chief Financial Officer', desc: 'Categorises every transaction, builds P&L reports, and tracks cashflow automatically.', color: '#00c8ff', border: 'rgba(0,200,255,0.4)', bg: 'rgba(0,200,255,0.05)' },
-  { id: 'SAGE', role: 'AI Tax Advisor', desc: 'Real-time tax estimates, VAT, deadline reminders, deduction guidance for UK/US/CA.', color: '#00ff88', border: 'rgba(0,255,136,0.4)', bg: 'rgba(0,255,136,0.05)' },
-  { id: 'ARIA', role: 'AI Chief of Staff', desc: 'Morning intelligence briefs, business health scores, and strategic analysis daily.', color: '#a855f7', border: 'rgba(168,85,247,0.4)', bg: 'rgba(168,85,247,0.05)' },
-  { id: 'MAX',  role: 'AI Growth Manager', desc: 'Revenue trends, client profitability scores, rate benchmarking, pipeline analysis.', color: '#ffb800', border: 'rgba(255,184,0,0.4)',  bg: 'rgba(255,184,0,0.05)' },
-  { id: 'REX',  role: 'AI Operations Manager', desc: 'Generates proposals, contracts, and project briefs in under 30 seconds.', color: '#ff2d78', border: 'rgba(255,45,120,0.4)', bg: 'rgba(255,45,120,0.05)' },
+  { id: 'FINN', role: 'AI Chief Financial Officer', desc: 'Categorises every transaction, builds real-time P&L reports, and flags cashflow risks before they bite.', color: '#00c8ff', border: 'rgba(0,200,255,0.4)', bg: 'rgba(0,200,255,0.05)' },
+  { id: 'SAGE', role: 'AI Tax Advisor', desc: 'Live tax estimates, VAT tracking, deadline alerts, and deductions you\'d have missed — for UK, US, and Canada.', color: '#00ff88', border: 'rgba(0,255,136,0.4)', bg: 'rgba(0,255,136,0.05)' },
+  { id: 'ARIA', role: 'AI Chief of Staff', desc: 'Delivers your daily intelligence brief, business health score, and strategic priorities — before your first coffee.', color: '#a855f7', border: 'rgba(168,85,247,0.4)', bg: 'rgba(168,85,247,0.05)' },
+  { id: 'MAX',  role: 'AI Growth Manager', desc: 'Spots your most profitable clients, benchmarks your rates, and tells you exactly where the revenue is hiding.', color: '#ffb800', border: 'rgba(255,184,0,0.4)',  bg: 'rgba(255,184,0,0.05)' },
+  { id: 'REX',  role: 'AI Operations Manager', desc: 'Writes proposals, contracts, and project briefs in under 30 seconds — built from your own data.', color: '#ff2d78', border: 'rgba(255,45,120,0.4)', bg: 'rgba(255,45,120,0.05)' },
 ]
 
 const FEATURES = [
-  { symbol: '▦', title: 'Automated Bookkeeping', desc: 'Upload your bank CSV — FINN categorises, flags, and analyses every transaction instantly.', color: '#00c8ff' },
-  { symbol: '◎', title: 'Tax Intelligence', desc: 'Live tax estimates for UK, US, and Canada. Never miss a deadline or a deduction again.', color: '#00ff88' },
-  { symbol: '◈', title: 'Business Health Score', desc: 'ARIA calculates a daily health score across revenue, margin, pipeline, and risk.', color: '#a855f7' },
-  { symbol: '⟁', title: 'Revenue Analytics', desc: 'Month-over-month growth, client profitability rankings, and pricing recommendations.', color: '#ffb800' },
-  { symbol: '⊡', title: 'Document Generator', desc: 'Professional proposals and contracts ready in seconds — built from your data.', color: '#ff2d78' },
-  { symbol: '⬡', title: 'Daily Intelligence Brief', desc: 'Every morning: weather, market news, P&L snapshot, and strategic priorities.', color: '#00c8ff' },
+  { symbol: '▦', title: 'Automated Bookkeeping', desc: 'Upload your bank CSV — FINN categorises every transaction, flags anomalies, and builds your P&L in seconds.', color: '#00c8ff' },
+  { symbol: '◎', title: 'Tax Intelligence', desc: 'Live tax estimates for UK, US, and Canada. Know exactly what you owe, what you can deduct, and when it\'s due.', color: '#00ff88' },
+  { symbol: '◈', title: 'Business Health Score', desc: 'A daily score across revenue, margin, pipeline, and risk — so you always know where you stand.', color: '#a855f7' },
+  { symbol: '⟁', title: 'Revenue Analytics', desc: 'See month-over-month growth, rank your most profitable clients, and get concrete pricing recommendations.', color: '#ffb800' },
+  { symbol: '⊡', title: 'Document Generator', desc: 'Professional proposals and contracts in under 30 seconds — customised from your own business data.', color: '#ff2d78' },
+  { symbol: '⬡', title: 'Daily Intelligence Brief', desc: 'Every morning: weather, market news, P&L snapshot, and the three things your business needs you to act on today.', color: '#00c8ff' },
 ]
 
 const TICKER_ITEMS = [
@@ -32,9 +32,9 @@ const TICKER_ITEMS = [
 ]
 
 const STEPS = [
-  { num: '01', title: 'CONNECT YOUR FINANCES', desc: 'Upload a bank CSV or connect your account. FINN processes transactions in seconds.' },
-  { num: '02', title: 'BRIEF YOUR AI TEAM', desc: 'Chat with any agent. Ask FINN about cash flow, SAGE about VAT, ARIA about strategy.' },
-  { num: '03', title: 'RECEIVE INTELLIGENCE', desc: 'Get daily briefs, tax estimates, health scores, and automated reports — every morning.' },
+  { num: '01', title: 'CONNECT YOUR FINANCES', desc: 'Upload a bank CSV. FINN categorises and analyses every transaction in seconds — no manual data entry.' },
+  { num: '02', title: 'DEPLOY YOUR AI TEAM', desc: 'Chat with any agent. Ask FINN about cashflow, SAGE about your tax bill, ARIA about strategy — they\'re always ready.' },
+  { num: '03', title: 'RUN ON INTELLIGENCE', desc: 'Daily briefs every morning. Real-time tax estimates. Health scores. Reports that used to take you hours — done automatically.' },
 ]
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -163,7 +163,7 @@ export default function LandingPage() {
             animate={{ opacity: [1, 0.2, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />
-          5 AGENTS ONLINE — FOUNDING MEMBER PRICING ACTIVE
+          5 AGENTS ONLINE — FOUNDING MEMBER RATES NOW LIVE
         </motion.div>
 
         {/* Headline */}
@@ -174,10 +174,10 @@ export default function LandingPage() {
           className="font-orbitron font-black leading-none mb-6 mx-auto"
           style={{ fontSize: 'clamp(36px, 6vw, 80px)', maxWidth: '900px' }}
         >
-          YOUR AI BACK OFFICE
+          STOP DOING ADMIN.
           <br />
           <span className="relative inline-block" style={{ color: '#00c8ff', textShadow: '0 0 40px rgba(0,200,255,0.5)' }}>
-            FOR AGENCIES & FREELANCERS
+            START BUILDING YOUR EMPIRE.
             <motion.span
               className="absolute left-0 bottom-0 h-[3px] bg-cyan"
               initial={{ width: 0 }}
@@ -195,7 +195,7 @@ export default function LandingPage() {
           className="font-rajdhani text-lg mb-10 mx-auto"
           style={{ color: 'rgba(150,190,220,0.7)', maxWidth: '600px', fontSize: '18px' }}
         >
-          Five specialised AI agents handle your finances, tax, strategy, growth, and operations — built for agencies and freelancers who mean business.
+          Five AI agents. Zero admin headaches. Your finances tracked, your taxes calculated, your strategy planned — automatically, every day.
         </motion.p>
 
         <motion.div
@@ -358,8 +358,8 @@ export default function LandingPage() {
           className="text-center mb-12"
         >
           <div className="font-mono-tech text-[10px] tracking-[4px] mb-3" style={{ color: 'rgba(0,200,255,0.5)' }}>{'// YOUR AI TEAM'}</div>
-          <h2 className="font-orbitron text-3xl font-black mb-3" style={{ color: 'rgba(200,230,255,0.95)' }}>FIVE AGENTS. ONE MISSION.</h2>
-          <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>Dedicated intelligence for every part of your agency or freelance business.</p>
+          <h2 className="font-orbitron text-3xl font-black mb-3" style={{ color: 'rgba(200,230,255,0.95)' }}>FIVE AGENTS. ONE BACK OFFICE.</h2>
+          <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>Each one a specialist. Together, they handle everything you used to do yourself.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -409,7 +409,7 @@ export default function LandingPage() {
             className="text-center mb-12"
           >
             <div className="font-mono-tech text-[10px] tracking-[4px] mb-3" style={{ color: 'rgba(0,200,255,0.5)' }}>{'// DEPLOYMENT SEQUENCE'}</div>
-            <h2 className="font-orbitron text-3xl font-black" style={{ color: 'rgba(200,230,255,0.95)' }}>UP IN THREE STEPS</h2>
+            <h2 className="font-orbitron text-3xl font-black" style={{ color: 'rgba(200,230,255,0.95)' }}>LIVE IN THREE STEPS</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -445,8 +445,8 @@ export default function LandingPage() {
             className="text-center mb-12"
           >
             <div className="font-mono-tech text-[10px] tracking-[4px] mb-3" style={{ color: 'rgba(0,200,255,0.5)' }}>{'// CAPABILITIES'}</div>
-            <h2 className="font-orbitron text-3xl font-black mb-3" style={{ color: 'rgba(200,230,255,0.95)' }}>EVERYTHING YOU NEED</h2>
-            <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>The complete back-office stack for agencies and freelancers ready to scale.</p>
+            <h2 className="font-orbitron text-3xl font-black mb-3" style={{ color: 'rgba(200,230,255,0.95)' }}>THE WHOLE BACK OFFICE. AUTOMATED.</h2>
+            <p className="font-rajdhani text-lg" style={{ color: 'rgba(150,190,220,0.55)' }}>Every feature exists to save you time, money, or a tax fine.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -485,13 +485,13 @@ export default function LandingPage() {
             animate={statsInView ? { opacity: 1, y: 0 } : {}}
             className="text-center mb-10"
           >
-            <h2 className="font-orbitron text-2xl font-black" style={{ color: 'rgba(200,230,255,0.9)' }}>BUILT FOR AGENCIES & FREELANCERS WHO MEAN BUSINESS</h2>
+            <h2 className="font-orbitron text-2xl font-black" style={{ color: 'rgba(200,230,255,0.9)' }}>THE NUMBERS SPEAK FOR THEMSELVES</h2>
           </motion.div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { to: 5,  suffix: '',   label: 'AI Agents deployed',      color: '#00c8ff' },
-              { to: 3,  suffix: '',   label: 'Tax jurisdictions (UK/US/CA)', color: '#00ff88' },
-              { to: 30, suffix: 's',  label: 'Seconds to generate a contract', color: '#a855f7' },
+              { to: 5,  suffix: '',   label: 'Specialist AI agents, always online', color: '#00c8ff' },
+              { to: 3,  suffix: '',   label: 'Tax jurisdictions covered — UK, US & CA', color: '#00ff88' },
+              { to: 30, suffix: 's',  label: 'To generate a professional contract', color: '#a855f7' },
             ].map((s, i) => (
               <motion.div
                 key={s.label}
@@ -523,7 +523,7 @@ export default function LandingPage() {
           style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 100%, rgba(0,200,255,0.08) 0%, transparent 70%)' }}
         />
         <div className="relative px-6 text-center max-w-3xl mx-auto">
-          <div className="font-mono-tech text-[10px] tracking-[4px] mb-4" style={{ color: 'rgba(0,200,255,0.5)' }}>{'// INITIATE DEPLOYMENT'}</div>
+          <div className="font-mono-tech text-[10px] tracking-[4px] mb-4" style={{ color: 'rgba(0,200,255,0.5)' }}>{'// YOUR AI TEAM IS READY'}</div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -531,7 +531,7 @@ export default function LandingPage() {
             className="font-orbitron font-black mb-4"
             style={{ fontSize: 'clamp(28px, 4vw, 48px)', color: 'rgba(200,230,255,0.95)' }}
           >
-            READY TO DEPLOY YOUR AI TEAM?
+            STOP RUNNING YOUR BUSINESS BLIND.
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
@@ -541,7 +541,7 @@ export default function LandingPage() {
             className="font-rajdhani text-lg mb-10"
             style={{ color: 'rgba(150,190,220,0.55)' }}
           >
-            Start free. Upgrade when you need more. No card required.
+            Join BVI free. Your AI team activates immediately. No card, no commitment.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
