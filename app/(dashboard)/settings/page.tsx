@@ -38,7 +38,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [notifications, setNotifications] = useState({ weekly_report: true, tax_reminders: true, agent_updates: false, marketing: false })
   const [savingNotifications, setSavingNotifications] = useState(false)
+  const [sendingTest, setSendingTest] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
@@ -59,6 +61,7 @@ export default function SettingsPage() {
       })
     })
     fetch('/api/referral').then(r => r.json()).then(d => { setReferralCode(d.code || ''); setReferralCount(d.referrals || 0) }).catch(() => null)
+    fetch('/api/usage').then(r => r.json()).then(d => { if (!d.error) setUsage({ used: d.used, limit: d.limit }) }).catch(() => null)
   }, [])
 
   async function handleSaveProfile() {
@@ -74,6 +77,21 @@ export default function SettingsPage() {
       toast.error('Failed to save profile')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleSendTestReport() {
+    setSendingTest(true)
+    try {
+      const res = await fetch('/api/email/weekly-report', { method: 'POST' })
+      const data = await res.json()
+      if (data.skipped) { toast.info('Weekly report is disabled — toggle it on first'); return }
+      if (!res.ok) throw new Error()
+      toast.success('Test report sent — check your inbox')
+    } catch {
+      toast.error('Failed to send test report')
+    } finally {
+      setSendingTest(false)
     }
   }
 
@@ -242,6 +260,27 @@ export default function SettingsPage() {
             )}
           </div>
 
+          {usage && (
+            <div className="relative bg-surface border border-cyan/20 p-5">
+              <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
+              <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-cyan/40" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-cyan/40" />
+              <div className="font-mono-tech text-[10px] tracking-[3px] text-cyan/60 mb-4">{'// TODAY\'S USAGE'}</div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-textMuted font-rajdhani text-sm">AI Messages</span>
+                <span className="font-orbitron text-sm text-text">{usage.used} / {usage.limit}</span>
+              </div>
+              <div className="h-1.5 bg-border overflow-hidden mb-1">
+                <div
+                  className={`h-full transition-all ${usage.used >= usage.limit ? 'bg-red' : usage.used >= usage.limit * 0.8 ? 'bg-yellow' : 'bg-cyan'}`}
+                  style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }}
+                />
+              </div>
+              <p className="text-textMuted font-rajdhani text-xs">Resets at midnight UTC. {profile.tier === 'free' && <a href="/pricing" className="text-cyan hover:opacity-80">Upgrade for more →</a>}</p>
+            </div>
+          )}
+
           <div className="relative bg-surface border border-cyan/20 p-5">
             <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-cyan/40" />
             <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-cyan/40" />
@@ -310,7 +349,11 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
-          <CyberButton className="mt-4" onClick={handleSaveNotifications} loading={savingNotifications}>SAVE PREFERENCES</CyberButton>
+          <div className="flex flex-wrap gap-3 mt-4">
+            <CyberButton onClick={handleSaveNotifications} loading={savingNotifications}>SAVE PREFERENCES</CyberButton>
+            <CyberButton variant="ghost" onClick={handleSendTestReport} loading={sendingTest}>SEND TEST REPORT →</CyberButton>
+          </div>
+          <p className="text-textMuted font-rajdhani text-xs mt-3">Weekly reports send every Monday at 08:00 UTC. Tax reminders fire 30, 14, 7, and 3 days before each deadline.</p>
         </div>
       )}
 

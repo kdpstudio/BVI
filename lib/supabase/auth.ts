@@ -44,10 +44,13 @@ export async function signUp(formData: SignUpData): Promise<SignUpResult> {
   if (data.user) {
     let referredBy: string | null = null
     if (formData.referral_code) {
-      const allUsers = await supabase.from('users').select('id')
-      for (const u of allUsers.data || []) {
-        const code = Buffer.from(u.id).toString('base64').slice(0, 10).replace(/[^a-zA-Z0-9]/g, 'x')
-        if (code === formData.referral_code) { referredBy = u.id; break }
+      try {
+        const base = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || ''
+        const res = await fetch(`${base}/api/referral/resolve?code=${encodeURIComponent(formData.referral_code)}`)
+        const json = await res.json()
+        if (json.userId) referredBy = json.userId
+      } catch {
+        // Non-fatal — proceed without referral
       }
     }
     await supabase.from('users').upsert({
