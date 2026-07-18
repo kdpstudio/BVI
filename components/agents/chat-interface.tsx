@@ -72,6 +72,12 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
         setStreaming(false)
         return
       }
+      if (res.status === 429) {
+        const err = await res.json()
+        setMessages(prev => [...prev, { role: 'assistant', content: `**Daily limit reached.** ${err.message || 'You have used all your messages for today.'}\n\n[Upgrade your plan →](/pricing)`, timestamp: new Date().toLocaleTimeString() }])
+        setStreaming(false)
+        return
+      }
       if (!res.ok) throw new Error('Failed to get response')
 
       const reader = res.body?.getReader()

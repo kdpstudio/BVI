@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { getAgent } from '@/lib/agents/config'
 import { canAgentAccess } from '@/lib/pricing'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { Agent, Tier } from '@/types'
 
 const anthropic = new Anthropic()
@@ -56,6 +57,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const tier = (profile?.tier || 'free') as Tier
     if (!canAgentAccess(tier, agent)) {
       return new Response(JSON.stringify({ error: 'upgrade_required', message: `${agent} requires a higher tier. Visit /pricing to upgrade.` }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    const rateLimit = await checkRateLimit(supabase, user.id, tier)
+    if (!rateLimit.allowed) {
+      return new Response(JSON.stringify({ error: 'rate_limited', message: `Daily message limit reached (${rateLimit.limit}/day on your plan). Upgrade for more messages or try again tomorrow.` }), { status: 429, headers: { 'Content-Type': 'application/json', 'X-RateLimit-Limit': String(rateLimit.limit), 'X-RateLimit-Remaining': '0' } })
     }
 
     const { message, history = [] } = await request.json()
