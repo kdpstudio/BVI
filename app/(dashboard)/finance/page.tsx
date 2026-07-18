@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { StatusDot } from '@/components/ui/status-dot'
 import { MetricCardSkeleton } from '@/components/ui/metric-card-skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
+import { Download } from 'lucide-react'
 
 interface PLData {
   income: number
@@ -80,9 +81,20 @@ export default function FinancePage() {
           </div>
           <p className="text-textMuted font-rajdhani text-sm">Financial intelligence and bookkeeping</p>
         </div>
-        <Link href="/agents/finn" className="border border-cyan text-cyan font-orbitron text-xs px-4 py-2 hover:bg-cyanGlow transition-colors">
-          CHAT WITH FINN →
-        </Link>
+        <div className="flex gap-2">
+          {transactions.length > 0 && (
+            <a
+              href="/api/transactions/export"
+              download
+              className="flex items-center gap-1.5 border border-cyan/30 text-cyan/70 font-orbitron text-xs px-3 py-2 hover:bg-cyan/10 hover:text-cyan transition-colors"
+            >
+              <Download size={12} /> EXPORT CSV
+            </a>
+          )}
+          <Link href="/agents/finn" className="border border-cyan text-cyan font-orbitron text-xs px-4 py-2 hover:bg-cyanGlow transition-colors">
+            CHAT WITH FINN →
+          </Link>
+        </div>
       </div>
 
       {/* P&L Cards */}

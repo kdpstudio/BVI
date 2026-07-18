@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Send, Download } from 'lucide-react'
+import { Send, Download, Trash2 } from 'lucide-react'
 import { Agent } from '@/types'
 import { MessageBubble } from './message-bubble'
 import { createClient } from '@/lib/supabase/client'
@@ -149,6 +149,18 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
     return () => window.removeEventListener('quick-action', handler)
   }, [])
 
+  async function handleClearChat() {
+    if (!confirm(`Clear all messages with ${agent}? This cannot be undone.`)) return
+    try {
+      const res = await fetch(`/api/agents/${agent.toLowerCase()}/clear`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      setMessages([])
+      toast.success('Chat cleared')
+    } catch {
+      toast.error('Failed to clear chat')
+    }
+  }
+
   function handleExport() {
     const lines = messages.map(m => `[${m.timestamp}] ${m.role.toUpperCase()}: ${m.content}`).join('\n\n')
     const blob = new Blob([lines], { type: 'text/plain' })
@@ -251,16 +263,24 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
               )}
             </span>
             {messages.length > 0 && (
-              <button onClick={handleExport} className="flex items-center gap-1 text-[9px] font-orbitron text-textDim hover:text-text transition-colors whitespace-nowrap">
-                <Download size={9} /> EXPORT
-              </button>
+              <>
+                <button onClick={handleExport} className="flex items-center gap-1 text-[9px] font-orbitron text-textDim hover:text-text transition-colors whitespace-nowrap">
+                  <Download size={9} /> EXPORT
+                </button>
+                <button onClick={handleClearChat} className="flex items-center gap-1 text-[9px] font-orbitron text-textDim hover:text-red transition-colors whitespace-nowrap">
+                  <Trash2 size={9} /> CLEAR
+                </button>
+              </>
             )}
           </div>
         )}
         {!usage && messages.length > 0 && (
-          <div className="flex justify-end mb-2">
+          <div className="flex justify-end gap-3 mb-2">
             <button onClick={handleExport} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-text transition-colors">
               <Download size={11} /> EXPORT CHAT
+            </button>
+            <button onClick={handleClearChat} className="flex items-center gap-1.5 text-xs font-orbitron text-textMuted hover:text-red transition-colors">
+              <Trash2 size={11} /> CLEAR CHAT
             </button>
           </div>
         )}

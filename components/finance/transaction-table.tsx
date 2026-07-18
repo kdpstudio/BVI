@@ -14,12 +14,20 @@ interface TransactionTableProps {
 
 const PAGE_SIZE = 25
 
+const CATEGORIES = [
+  'Revenue', 'Consulting', 'Freelance', 'Products', 'Subscriptions',
+  'Advertising', 'Software', 'Equipment', 'Office', 'Travel',
+  'Meals', 'Marketing', 'Legal', 'Accounting', 'Insurance',
+  'Salaries', 'Contractors', 'Training', 'Utilities', 'Other',
+]
+
 export function TransactionTable({ transactions, onRefresh }: TransactionTableProps) {
   const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'flagged'>('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [deleting, setDeleting] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
 
   async function handleBulkDelete() {
     if (selected.size === 0) return
@@ -43,6 +51,18 @@ export function TransactionTable({ transactions, onRefresh }: TransactionTablePr
       setSelected(new Set())
     } else {
       setSelected(new Set(paged.map(t => t.id)))
+    }
+  }
+
+  async function handleCategoryChange(id: string, category: string) {
+    setEditingCategory(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('transactions').update({ category }).eq('id', id)
+      if (error) throw error
+      onRefresh()
+    } catch {
+      toast.error('Failed to update category')
     }
   }
 
@@ -138,8 +158,26 @@ export function TransactionTable({ transactions, onRefresh }: TransactionTablePr
                   </td>
                   <td className="py-2.5 pr-4 text-textMuted text-xs font-mono whitespace-nowrap">{formatDate(tx.date)}</td>
                   <td className="py-2.5 pr-4 text-text text-sm font-rajdhani max-w-xs truncate">{tx.description}</td>
-                  <td className="py-2.5 pr-4 whitespace-nowrap">
-                    <span className="text-xs font-orbitron px-2 py-0.5 bg-surface2 border border-border text-textMuted">{tx.category}</span>
+                  <td className="py-2.5 pr-4 whitespace-nowrap relative">
+                    {editingCategory === tx.id ? (
+                      <select
+                        autoFocus
+                        defaultValue={tx.category || ''}
+                        onBlur={() => setEditingCategory(null)}
+                        onChange={e => handleCategoryChange(tx.id, e.target.value)}
+                        className="text-xs font-orbitron px-2 py-0.5 bg-surface border border-cyan/50 text-cyan outline-none cursor-pointer"
+                      >
+                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setEditingCategory(tx.id)}
+                        title="Click to edit category"
+                        className="text-xs font-orbitron px-2 py-0.5 bg-surface2 border border-border text-textMuted hover:border-cyan/40 hover:text-text transition-colors"
+                      >
+                        {tx.category || '—'}
+                      </button>
+                    )}
                   </td>
                   <td className={`py-2.5 pr-4 font-orbitron text-sm whitespace-nowrap ${tx.type === 'income' ? 'text-green' : 'text-red'}`}>
                     {tx.type === 'income' ? '+' : '-'}£{Math.abs(tx.amount).toFixed(2)}
