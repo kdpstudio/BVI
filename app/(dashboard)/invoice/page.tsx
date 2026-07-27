@@ -1,22 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { CyberCard } from '@/components/ui/cyber-card'
 import { StatusDot } from '@/components/ui/status-dot'
-import { Plus, Trash2, Printer } from 'lucide-react'
-
-interface LineItem {
-  id: string
-  description: string
-  qty: number
-  rate: number
-}
+import { createClient } from '@/lib/supabase/client'
+import { renderInvoiceHtml, InvoiceLineItem } from '@/lib/invoice/template'
+import { toast } from 'sonner'
+import { Plus, Trash2, Printer, Sparkles, Repeat } from 'lucide-react'
 
 const CURRENCIES = [
   { value: 'GBP', symbol: '£' },
   { value: 'USD', symbol: '$' },
   { value: 'EUR', symbol: '€' },
 ]
+
+interface RecurringInvoiceRow {
+  id: string
+  client_name: string
+  frequency: string
+  next_run_date: string
+  active: boolean
+}
 
 export default function InvoicePage() {
   const [form, setForm] = useState({
@@ -33,24 +37,60 @@ export default function InvoicePage() {
     notes: '',
     vatRate: '',
   })
-  const [items, setItems] = useState<LineItem[]>([
-    { id: '1', description: '', qty: 1, rate: 0 },
+  const [items, setItems] = useState<InvoiceLineItem[]>([
+    { description: '', qty: 1, rate: 0 },
   ])
+
+  const [brandedActive, setBrandedActive] = useState(false)
+  const [recurringActive, setRecurringActive] = useState(false)
+  const [logoUrl, setLogoUrl] = useState('')
+  const [brandColor, setBrandColor] = useState('#00c8ff')
+  const [savingBranding, setSavingBranding] = useState(false)
+  const [buyingAddon, setBuyingAddon] = useState<string | null>(null)
+
+  const [recurringFrequency, setRecurringFrequency] = useState<'weekly' | 'monthly'>('monthly')
+  const [savingRecurring, setSavingRecurring] = useState(false)
+  const [recurringList, setRecurringList] = useState<RecurringInvoiceRow[]>([])
+
+  const loadAddons = useCallback(async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('users')
+      .select('addon_branded_invoices, addon_recurring_invoices, invoice_logo_url, invoice_brand_color')
+      .eq('id', user.id)
+      .single()
+    if (data) {
+      setBrandedActive(data.addon_branded_invoices ?? false)
+      setRecurringActive(data.addon_recurring_invoices ?? false)
+      setLogoUrl(data.invoice_logo_url ?? '')
+      setBrandColor(data.invoice_brand_color ?? '#00c8ff')
+    }
+    const { data: recurring } = await supabase
+      .from('recurring_invoices')
+      .select('id, client_name, frequency, next_run_date, active')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    setRecurringList(recurring ?? [])
+  }, [])
+
+  useEffect(() => { loadAddons() }, [loadAddons])
 
   function set(k: string, v: string) {
     setForm(p => ({ ...p, [k]: v }))
   }
 
   function addItem() {
-    setItems(p => [...p, { id: Date.now().toString(), description: '', qty: 1, rate: 0 }])
+    setItems(p => [...p, { description: '', qty: 1, rate: 0 }])
   }
 
-  function updateItem(id: string, k: keyof LineItem, v: string | number) {
-    setItems(p => p.map(i => i.id === id ? { ...i, [k]: v } : i))
+  function updateItem(index: number, k: keyof InvoiceLineItem, v: string | number) {
+    setItems(p => p.map((it, i) => i === index ? { ...it, [k]: v } : it))
   }
 
-  function removeItem(id: string) {
-    setItems(p => p.filter(i => i.id !== id))
+  function removeItem(index: number) {
+    setItems(p => p.filter((_, i) => i !== index))
   }
 
   const currencySymbol = CURRENCIES.find(c => c.value === form.currency)?.symbol ?? '£'
@@ -62,80 +102,112 @@ export default function InvoicePage() {
   const fmt = (n: number) => `${currencySymbol}${n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   function generateInvoice() {
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Invoice ${form.invoiceNo}</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a2e; background: #fff; padding: 40px; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; border-bottom: 3px solid #00c8ff; padding-bottom: 24px; }
-  .brand { font-size: 28px; font-weight: 900; letter-spacing: 4px; color: #00c8ff; }
-  .invoice-meta { text-align: right; }
-  .invoice-meta h2 { font-size: 22px; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; }
-  .invoice-meta p { font-size: 13px; color: #666; margin-bottom: 4px; }
-  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px; }
-  .party h3 { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #00c8ff; margin-bottom: 8px; }
-  .party p { font-size: 13px; line-height: 1.7; color: #444; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  thead tr { background: #f0faff; }
-  th { text-align: left; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 12px; color: #00c8ff; }
-  td { padding: 12px; font-size: 13px; border-bottom: 1px solid #eef2f7; }
-  .text-right { text-align: right; }
-  .totals { margin-left: auto; width: 280px; }
-  .totals .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid #eef2f7; }
-  .totals .total { font-weight: 700; font-size: 16px; color: #00c8ff; border-bottom: none; margin-top: 4px; }
-  .notes { margin-top: 40px; padding-top: 24px; border-top: 1px solid #eef2f7; font-size: 12px; color: #888; }
-  .footer { margin-top: 48px; text-align: center; font-size: 10px; color: #ccc; letter-spacing: 2px; }
-  @media print { body { padding: 20px; } }
-</style>
-</head>
-<body>
-<div class="header">
-  <div>
-    <div class="brand">BVI</div>
-    <p style="font-size:11px;color:#aaa;letter-spacing:2px;margin-top:4px;">BLACK VAULT INTELLIGENCE</p>
-  </div>
-  <div class="invoice-meta">
-    <h2>INVOICE</h2>
-    <p><strong>${form.invoiceNo}</strong></p>
-    <p>Date: ${form.date}</p>
-    ${form.dueDate ? `<p>Due: ${form.dueDate}</p>` : ''}
-  </div>
-</div>
-<div class="parties">
-  <div class="party">
-    <h3>From</h3>
-    <p><strong>${form.fromName || '—'}</strong><br>${form.fromEmail ? form.fromEmail + '<br>' : ''}${(form.fromAddress || '').replace(/\n/g, '<br>')}</p>
-  </div>
-  <div class="party">
-    <h3>Bill To</h3>
-    <p><strong>${form.toName || '—'}</strong><br>${form.toEmail ? form.toEmail + '<br>' : ''}${(form.toAddress || '').replace(/\n/g, '<br>')}</p>
-  </div>
-</div>
-<table>
-  <thead><tr><th>Description</th><th class="text-right">Qty</th><th class="text-right">Rate</th><th class="text-right">Amount</th></tr></thead>
-  <tbody>
-    ${items.map(i => `<tr><td>${i.description || '—'}</td><td class="text-right">${i.qty}</td><td class="text-right">${fmt(i.rate)}</td><td class="text-right">${fmt(i.qty * i.rate)}</td></tr>`).join('')}
-  </tbody>
-</table>
-<div class="totals">
-  <div class="row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
-  ${vatRate ? `<div class="row"><span>VAT (${vatRate}%)</span><span>${fmt(vatAmount)}</span></div>` : ''}
-  <div class="row total"><span>TOTAL (${form.currency})</span><span>${fmt(total)}</span></div>
-</div>
-${form.notes ? `<div class="notes"><strong>Notes:</strong><br>${form.notes}</div>` : ''}
-<div class="footer">Generated by Black Vault Intelligence · blackvaultintelligence.com</div>
-<script>window.onload=()=>window.print()</script>
-</body>
-</html>`
+    const html = renderInvoiceHtml({
+      invoiceNo: form.invoiceNo,
+      date: form.date,
+      dueDate: form.dueDate,
+      currency: form.currency,
+      fromName: form.fromName,
+      fromEmail: form.fromEmail,
+      fromAddress: form.fromAddress,
+      toName: form.toName,
+      toEmail: form.toEmail,
+      toAddress: form.toAddress,
+      notes: form.notes,
+      vatRate,
+      items,
+      branding: { active: brandedActive, logoUrl, brandColor },
+    })
 
     const win = window.open('', '_blank')
     if (win) {
-      win.document.write(html)
+      win.document.write(html + '<script>window.onload=()=>window.print()</script>')
       win.document.close()
     }
+  }
+
+  async function handleBuyAddon(product: 'branded_invoices' | 'recurring_invoices') {
+    setBuyingAddon(product)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else throw new Error()
+    } catch {
+      toast.error('Failed to start checkout')
+      setBuyingAddon(null)
+    }
+  }
+
+  async function handleSaveBranding() {
+    setSavingBranding(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error()
+      const { error } = await supabase.from('users').update({
+        invoice_logo_url: logoUrl || null,
+        invoice_brand_color: brandColor,
+      }).eq('id', user.id)
+      if (error) throw error
+      toast.success('Branding saved')
+    } catch {
+      toast.error('Failed to save branding')
+    } finally {
+      setSavingBranding(false)
+    }
+  }
+
+  async function handleSaveRecurring() {
+    if (!form.toName.trim()) {
+      toast.error('Add a client name first')
+      return
+    }
+    setSavingRecurring(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error()
+
+      const next = new Date()
+      if (recurringFrequency === 'weekly') next.setDate(next.getDate() + 7)
+      else next.setMonth(next.getMonth() + 1)
+
+      const { error } = await supabase.from('recurring_invoices').insert({
+        user_id: user.id,
+        client_name: form.toName,
+        client_email: form.toEmail || null,
+        client_address: form.toAddress || null,
+        from_name: form.fromName || null,
+        from_email: form.fromEmail || null,
+        from_address: form.fromAddress || null,
+        currency: form.currency,
+        vat_rate: vatRate,
+        items,
+        notes: form.notes || null,
+        frequency: recurringFrequency,
+        next_run_date: next.toISOString().slice(0, 10),
+      })
+      if (error) throw error
+      toast.success(`Recurring invoice set up — next send ${next.toLocaleDateString('en-GB')}`)
+      loadAddons()
+    } catch {
+      toast.error('Failed to set up recurring invoice')
+    } finally {
+      setSavingRecurring(false)
+    }
+  }
+
+  async function handleCancelRecurring(id: string) {
+    const supabase = createClient()
+    const { error } = await supabase.from('recurring_invoices').update({ active: false }).eq('id', id)
+    if (error) { toast.error('Failed to cancel'); return }
+    toast.success('Recurring invoice cancelled')
+    loadAddons()
   }
 
   const inputCls = 'w-full bg-surface border border-border px-3 py-2 text-text text-sm font-rajdhani outline-none focus:border-cyan/60 transition-colors'
@@ -248,23 +320,23 @@ ${form.notes ? `<div class="notes"><strong>Notes:</strong><br>${form.notes}</div
               </tr>
             </thead>
             <tbody>
-              {items.map(item => (
-                <tr key={item.id} className="border-b border-border/40">
+              {items.map((item, index) => (
+                <tr key={index} className="border-b border-border/40">
                   <td className="py-2 pr-3">
-                    <input className={inputCls} placeholder="Design work" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} />
+                    <input className={inputCls} placeholder="Design work" value={item.description} onChange={e => updateItem(index, 'description', e.target.value)} />
                   </td>
                   <td className="py-2 pr-3 w-20">
-                    <input type="number" min="1" className={inputCls} value={item.qty} onChange={e => updateItem(item.id, 'qty', parseFloat(e.target.value) || 1)} />
+                    <input type="number" min="1" className={inputCls} value={item.qty} onChange={e => updateItem(index, 'qty', parseFloat(e.target.value) || 1)} />
                   </td>
                   <td className="py-2 pr-3 w-32">
-                    <input type="number" min="0" step="0.01" className={inputCls} value={item.rate} onChange={e => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)} />
+                    <input type="number" min="0" step="0.01" className={inputCls} value={item.rate} onChange={e => updateItem(index, 'rate', parseFloat(e.target.value) || 0)} />
                   </td>
                   <td className="py-2 pr-3 w-32 font-orbitron text-sm text-cyan whitespace-nowrap">
                     {fmt(item.qty * item.rate)}
                   </td>
                   <td className="py-2 w-8">
                     {items.length > 1 && (
-                      <button onClick={() => removeItem(item.id)} aria-label="Remove line item" className="text-textMuted hover:text-red transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan rounded">
+                      <button onClick={() => removeItem(index)} aria-label="Remove line item" className="text-textMuted hover:text-red transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan rounded">
                         <Trash2 size={14} />
                       </button>
                     )}
@@ -291,6 +363,91 @@ ${form.notes ? `<div class="notes"><strong>Notes:</strong><br>${form.notes}</div
           value={form.notes}
           onChange={e => set('notes', e.target.value)}
         />
+      </CyberCard>
+
+      {/* Branded Invoices add-on */}
+      <CyberCard variant={brandedActive ? 'cyan' : 'ghost'} title="BRANDED INVOICES">
+        {brandedActive ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Logo URL</label>
+              <input className={inputCls} placeholder="https://.../logo.png" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} />
+            </div>
+            <div>
+              <label className={labelCls}>Brand Colour</label>
+              <div className="flex gap-2 items-center">
+                <input type="color" value={brandColor} onChange={e => setBrandColor(e.target.value)} className="h-9 w-12 bg-surface border border-border cursor-pointer" />
+                <input className={inputCls} value={brandColor} onChange={e => setBrandColor(e.target.value)} />
+              </div>
+            </div>
+            <div className="sm:col-span-2">
+              <button onClick={handleSaveBranding} disabled={savingBranding} className="bg-cyan text-background font-orbitron text-xs px-5 py-2.5 hover:opacity-90 transition-opacity disabled:opacity-40">
+                {savingBranding ? 'SAVING...' : 'SAVE BRANDING'}
+              </button>
+              <p className="text-textMuted text-xs font-rajdhani mt-2">The BVI watermark is removed from every invoice you generate.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <p className="font-orbitron text-xs text-cyan mb-1 flex items-center gap-1.5"><Sparkles size={12} /> ADD YOUR LOGO, REMOVE THE BVI WATERMARK</p>
+              <p className="font-rajdhani text-sm text-textMuted">Invoices your clients see should look like they came from you, not a template tool. £5/month.</p>
+            </div>
+            <button onClick={() => handleBuyAddon('branded_invoices')} disabled={buyingAddon === 'branded_invoices'} className="bg-cyan text-background font-orbitron text-xs px-5 py-2.5 hover:opacity-90 transition-opacity disabled:opacity-40 whitespace-nowrap">
+              {buyingAddon === 'branded_invoices' ? 'LOADING...' : 'ADD BRANDING — £5/MO'}
+            </button>
+          </div>
+        )}
+      </CyberCard>
+
+      {/* Recurring Invoices add-on */}
+      <CyberCard variant={recurringActive ? 'purple' : 'ghost'} title="RECURRING INVOICES">
+        {recurringActive ? (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+              <div>
+                <label className={labelCls}>Frequency</label>
+                <select className={inputCls} value={recurringFrequency} onChange={e => setRecurringFrequency(e.target.value as 'weekly' | 'monthly')}>
+                  <option value="monthly">Monthly</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+              <button onClick={handleSaveRecurring} disabled={savingRecurring} className="flex items-center gap-2 bg-purple text-background font-orbitron text-xs px-5 py-2.5 hover:opacity-90 transition-opacity disabled:opacity-40 whitespace-nowrap">
+                <Repeat size={12} /> {savingRecurring ? 'SAVING...' : 'MAKE THIS INVOICE RECURRING'}
+              </button>
+            </div>
+            <p className="text-textMuted text-xs font-rajdhani">Uses the client and line items above. BVI emails the invoice to the client automatically on schedule.</p>
+
+            {recurringList.length > 0 && (
+              <div className="border-t border-border pt-4">
+                <p className="font-mono-tech text-[9px] text-textMuted tracking-[2px] mb-2">ACTIVE RECURRING INVOICES</p>
+                <div className="flex flex-col gap-2">
+                  {recurringList.filter(r => r.active).map(r => (
+                    <div key={r.id} className="flex items-center justify-between px-3 py-2 border border-border bg-surface2">
+                      <div>
+                        <p className="font-orbitron text-xs text-text">{r.client_name}</p>
+                        <p className="font-rajdhani text-xs text-textMuted">{r.frequency} · next {new Date(r.next_run_date).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <button onClick={() => handleCancelRecurring(r.id)} className="text-textMuted hover:text-red transition-colors">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <p className="font-orbitron text-xs text-purple mb-1 flex items-center gap-1.5"><Repeat size={12} /> AUTO-SEND INVOICES ON A SCHEDULE</p>
+              <p className="font-rajdhani text-sm text-textMuted">Set it once for a retainer client and stop remembering to invoice them every month. £9/month.</p>
+            </div>
+            <button onClick={() => handleBuyAddon('recurring_invoices')} disabled={buyingAddon === 'recurring_invoices'} className="bg-purple text-background font-orbitron text-xs px-5 py-2.5 hover:opacity-90 transition-opacity disabled:opacity-40 whitespace-nowrap">
+              {buyingAddon === 'recurring_invoices' ? 'LOADING...' : 'ADD RECURRING — £9/MO'}
+            </button>
+          </div>
+        )}
       </CyberCard>
     </div>
   )

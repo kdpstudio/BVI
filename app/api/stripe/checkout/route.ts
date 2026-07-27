@@ -21,6 +21,12 @@ const PRICE_IDS: Record<string, Record<string, string>> = {
 const BOOST_PRICE_ID = process.env.STRIPE_BOOST_PRICE_ID || 'price_boost_100_messages'
 const BOOST_MESSAGE_COUNT = 100
 
+// Recurring add-on subscriptions, billed separately from the main tier plan.
+const ADDON_PRICE_IDS: Record<'branded_invoices' | 'recurring_invoices', string> = {
+  branded_invoices: process.env.STRIPE_BRANDED_INVOICES_PRICE_ID || 'price_addon_branded_invoices',
+  recurring_invoices: process.env.STRIPE_RECURRING_INVOICES_PRICE_ID || 'price_addon_recurring_invoices',
+}
+
 function getPriceId(tier: string, billingCycle: string): string | undefined {
   if (billingCycle === 'lifetime') return PRICE_IDS[`${tier}_lifetime`]?.lifetime
   return PRICE_IDS[tier]?.[billingCycle]
@@ -35,7 +41,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as {
       tier?: 'solo' | 'studio' | 'agency'
       billingCycle?: 'monthly' | 'annual' | 'lifetime'
-      product?: 'boost'
+      product?: 'boost' | 'branded_invoices' | 'recurring_invoices'
     }
 
     const { data: profile } = await supabase.from('users').select('stripe_customer_id').eq('id', user.id).single()
@@ -60,6 +66,18 @@ export async function POST(request: NextRequest) {
         metadata: { userId: user.id, product: 'boost', messageCount: String(BOOST_MESSAGE_COUNT) },
         success_url: `${baseUrl}/agents?boosted=true`,
         cancel_url: `${baseUrl}/agents`,
+      })
+      return NextResponse.json({ url: session.url })
+    }
+
+    if (body.product === 'branded_invoices' || body.product === 'recurring_invoices') {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        mode: 'subscription',
+        line_items: [{ price: ADDON_PRICE_IDS[body.product], quantity: 1 }],
+        metadata: { userId: user.id, product: body.product },
+        success_url: `${baseUrl}/invoice?addon=${body.product}`,
+        cancel_url: `${baseUrl}/invoice`,
       })
       return NextResponse.json({ url: session.url })
     }

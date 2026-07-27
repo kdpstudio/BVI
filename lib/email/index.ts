@@ -11,6 +11,27 @@ function resendClient(): Resend {
   return client
 }
 
+export async function sendRecurringInvoiceEmail(to: string, data: {
+  clientName: string
+  fromName: string
+  invoiceHtml: string
+  invoiceNo: string
+}) {
+  return resendClient().emails.send({
+    from: FROM,
+    to,
+    subject: `Invoice ${data.invoiceNo} from ${data.fromName || 'your provider'}`,
+    html: `
+      <div style="font-family:'Helvetica Neue',Arial,sans-serif;background:#f4f6f8;padding:24px;">
+        <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:4px;overflow:hidden;">
+          ${data.invoiceHtml}
+        </div>
+        <p style="text-align:center;color:#94a3b8;font-size:11px;margin-top:16px;">Sent automatically by Black Vault Intelligence on behalf of ${data.fromName || 'your provider'}.</p>
+      </div>
+    `,
+  })
+}
+
 export async function sendWeeklyReport(to: string, data: {
   name: string
   income: number

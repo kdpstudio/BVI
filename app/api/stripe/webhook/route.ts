@@ -46,6 +46,29 @@ async function logEvent(
   await supabase.from('agent_logs').insert({ user_id: userId, agent: 'SYSTEM', action, result })
 }
 
+/**
+ * A customer can hold two independent Stripe subscriptions: the main tier
+ * plan and, separately, an add-on. Subscription lifecycle events only carry
+ * a customer ID, so this tells us whether a given subscription is an add-on
+ * (and which one) before the tier-reset logic runs — otherwise cancelling
+ * Branded Invoices would incorrectly downgrade the user's whole account.
+ */
+async function addonFieldForSubscription(
+  supabase: ReturnType<typeof getServiceClient>,
+  userId: string,
+  subscriptionId: string
+): Promise<'addon_branded_invoices' | 'addon_recurring_invoices' | null> {
+  const { data: user } = await supabase
+    .from('users')
+    .select('stripe_addon_branded_sub_id, stripe_addon_recurring_sub_id')
+    .eq('id', userId)
+    .single()
+
+  if (user?.stripe_addon_branded_sub_id === subscriptionId) return 'addon_branded_invoices'
+  if (user?.stripe_addon_recurring_sub_id === subscriptionId) return 'addon_recurring_invoices'
+  return null
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const sig = request.headers.get('stripe-signature')!
@@ -75,6 +98,17 @@ export async function POST(request: NextRequest) {
             bonus_messages: (current?.bonus_messages ?? 0) + amount,
           }).eq('id', userId)
           await logEvent(supabase, userId, `Message Boost purchased (+${amount})`, 'checkout.session.completed')
+          break
+        }
+
+        if (product === 'branded_invoices' || product === 'recurring_invoices') {
+          const subId = session.subscription as string || null
+          await supabase.from('users').update(
+            product === 'branded_invoices'
+              ? { addon_branded_invoices: true, stripe_addon_branded_sub_id: subId }
+              : { addon_recurring_invoices: true, stripe_addon_recurring_sub_id: subId }
+          ).eq('id', userId)
+          await logEvent(supabase, userId, `Add-on activated: ${product}`, 'checkout.session.completed')
           break
         }
 
@@ -192,6 +226,17 @@ export async function POST(request: NextRequest) {
         const userId = await getUserIdFromCustomer(sub.customer as string)
         if (!userId) break
 
+        // Add-on subscriptions are billed separately from the main tier plan —
+        // don't let their status changes fall through into tier logic below.
+        const addonField = await addonFieldForSubscription(supabase, userId, sub.id)
+        if (addonField) {
+          if (sub.status !== 'active') {
+            await supabase.from('users').update({ [addonField]: false }).eq('id', userId)
+            await logEvent(supabase, userId, `Add-on ${sub.status}`, addonField)
+          }
+          break
+        }
+
         const priceId = sub.items?.data?.[0]?.price?.id
         const resolved = priceId ? tierFromPriceId(priceId) : null
         const status = sub.status
@@ -212,6 +257,13 @@ export async function POST(request: NextRequest) {
         const sub = event.data.object as Stripe.Subscription
         const userId = await getUserIdFromCustomer(sub.customer as string)
         if (!userId) break
+
+        const addonField = await addonFieldForSubscription(supabase, userId, sub.id)
+        if (addonField) {
+          await supabase.from('users').update({ [addonField]: false }).eq('id', userId)
+          await logEvent(supabase, userId, 'Add-on cancelled', addonField)
+          break
+        }
 
         const { data: user } = await supabase.from('users').select('billing_cycle').eq('id', userId).single()
         if (user?.billing_cycle !== 'lifetime') {

@@ -1,0 +1,118 @@
+export interface InvoiceLineItem {
+  description: string
+  qty: number
+  rate: number
+}
+
+export interface InvoiceBranding {
+  logoUrl?: string | null
+  brandColor?: string | null
+  /** Founding "Branded Invoices" add-on — hides the BVI footer/watermark. */
+  active: boolean
+}
+
+export interface InvoiceInput {
+  invoiceNo: string
+  date: string
+  dueDate?: string
+  currency: string
+  fromName: string
+  fromEmail?: string
+  fromAddress?: string
+  toName: string
+  toEmail?: string
+  toAddress?: string
+  notes?: string
+  vatRate?: number
+  items: InvoiceLineItem[]
+  branding: InvoiceBranding
+}
+
+const CURRENCY_SYMBOLS: Record<string, string> = { GBP: '£', USD: '$', EUR: '€' }
+
+export function renderInvoiceHtml(input: InvoiceInput, opts: { bodyOnly?: boolean } = {}): string {
+  const symbol = CURRENCY_SYMBOLS[input.currency] ?? '£'
+  const fmt = (n: number) => `${symbol}${n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+  const subtotal = input.items.reduce((s, i) => s + i.qty * i.rate, 0)
+  const vatRate = input.vatRate || 0
+  const vatAmount = subtotal * (vatRate / 100)
+  const total = subtotal + vatAmount
+
+  const accent = input.branding.active && input.branding.brandColor ? input.branding.brandColor : '#00c8ff'
+  const logo = input.branding.active && input.branding.logoUrl
+    ? `<img src="${input.branding.logoUrl}" alt="${input.fromName}" style="max-height:40px;max-width:200px;" />`
+    : `<div class="brand">BVI</div><p style="font-size:11px;color:#aaa;letter-spacing:2px;margin-top:4px;">BLACK VAULT INTELLIGENCE</p>`
+
+  const style = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a2e; background: #fff; padding: 40px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; border-bottom: 3px solid ${accent}; padding-bottom: 24px; }
+  .brand { font-size: 28px; font-weight: 900; letter-spacing: 4px; color: ${accent}; }
+  .invoice-meta { text-align: right; }
+  .invoice-meta h2 { font-size: 22px; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px; }
+  .invoice-meta p { font-size: 13px; color: #666; margin-bottom: 4px; }
+  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px; }
+  .party h3 { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: ${accent}; margin-bottom: 8px; }
+  .party p { font-size: 13px; line-height: 1.7; color: #444; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  thead tr { background: #f0faff; }
+  th { text-align: left; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 12px; color: ${accent}; }
+  td { padding: 12px; font-size: 13px; border-bottom: 1px solid #eef2f7; }
+  .text-right { text-align: right; }
+  .totals { margin-left: auto; width: 280px; }
+  .totals .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid #eef2f7; }
+  .totals .total { font-weight: 700; font-size: 16px; color: ${accent}; border-bottom: none; margin-top: 4px; }
+  .notes { margin-top: 40px; padding-top: 24px; border-top: 1px solid #eef2f7; font-size: 12px; color: #888; }
+  .footer { margin-top: 48px; text-align: center; font-size: 10px; color: #ccc; letter-spacing: 2px; }
+  @media print { body { padding: 20px; } }`
+
+  const bodyContent = `<div class="header">
+  <div>${logo}</div>
+  <div class="invoice-meta">
+    <h2>INVOICE</h2>
+    <p><strong>${input.invoiceNo}</strong></p>
+    <p>Date: ${input.date}</p>
+    ${input.dueDate ? `<p>Due: ${input.dueDate}</p>` : ''}
+  </div>
+</div>
+<div class="parties">
+  <div class="party">
+    <h3>From</h3>
+    <p><strong>${input.fromName || '—'}</strong><br>${input.fromEmail ? input.fromEmail + '<br>' : ''}${(input.fromAddress || '').replace(/\n/g, '<br>')}</p>
+  </div>
+  <div class="party">
+    <h3>Bill To</h3>
+    <p><strong>${input.toName || '—'}</strong><br>${input.toEmail ? input.toEmail + '<br>' : ''}${(input.toAddress || '').replace(/\n/g, '<br>')}</p>
+  </div>
+</div>
+<table>
+  <thead><tr><th>Description</th><th class="text-right">Qty</th><th class="text-right">Rate</th><th class="text-right">Amount</th></tr></thead>
+  <tbody>
+    ${input.items.map(i => `<tr><td>${i.description || '—'}</td><td class="text-right">${i.qty}</td><td class="text-right">${fmt(i.rate)}</td><td class="text-right">${fmt(i.qty * i.rate)}</td></tr>`).join('')}
+  </tbody>
+</table>
+<div class="totals">
+  <div class="row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+  ${vatRate ? `<div class="row"><span>VAT (${vatRate}%)</span><span>${fmt(vatAmount)}</span></div>` : ''}
+  <div class="row total"><span>TOTAL (${input.currency})</span><span>${fmt(total)}</span></div>
+</div>
+${input.notes ? `<div class="notes"><strong>Notes:</strong><br>${input.notes}</div>` : ''}
+${input.branding.active ? '' : '<div class="footer">Generated by Black Vault Intelligence · blackvaultintelligence.com</div>'}`
+
+  if (opts.bodyOnly) {
+    return `<style>${style}</style><div style="padding:24px;">${bodyContent}</div>`
+  }
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Invoice ${input.invoiceNo}</title>
+<style>${style}</style>
+</head>
+<body>
+${bodyContent}
+</body>
+</html>`
+}
