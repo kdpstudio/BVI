@@ -50,7 +50,7 @@ const AGENT_THEME: Record<Agent, { text: string; border: string; bg: string; emo
   REX:  { text: 'text-orange-400', border: 'border-orange-400', bg: 'bg-orange-400', emoji: '🗂️', glow: 'rgba(251,146,60,0.3)' },
 }
 
-interface UsageData { used: number; limit: number; tier: string }
+interface UsageData { used: number; limit: number; tier: string; bonusMessages?: number }
 
 export function ChatInterface({ agent, initialMessage }: { agent: Agent; initialMessage?: string }) {
   const [messages, setMessages] = useState<Message[]>([])
@@ -112,7 +112,8 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
       }
       if (res.status === 429) {
         const err = await res.json()
-        setMessages(prev => [...prev, { role: 'assistant', content: `**Daily limit reached.** ${err.message || 'You have used all your messages for today.'}\n\n[Upgrade your plan →](/pricing)`, timestamp: new Date().toLocaleTimeString() }])
+        const boostHint = err.canBoost ? ' Buy a Message Boost below for 100 more right now, or upgrade for a higher daily limit.' : ''
+        setMessages(prev => [...prev, { role: 'assistant', content: `**Daily limit reached.** ${err.message || 'You have used all your messages for today.'}${boostHint}\n\n[Upgrade your plan →](/pricing)`, timestamp: new Date().toLocaleTimeString() }])
         setStreaming(false)
         return
       }
@@ -148,6 +149,25 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
     window.addEventListener('quick-action', handler)
     return () => window.removeEventListener('quick-action', handler)
   }, [])
+
+  const [buyingBoost, setBuyingBoost] = useState(false)
+
+  async function handleBuyBoost() {
+    setBuyingBoost(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: 'boost' }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else throw new Error()
+    } catch {
+      toast.error('Failed to start checkout')
+      setBuyingBoost(false)
+    }
+  }
 
   async function handleClearChat() {
     if (!confirm(`Clear all messages with ${agent}? This cannot be undone.`)) return
@@ -258,8 +278,16 @@ export function ChatInterface({ agent, initialMessage }: { agent: Agent; initial
             </div>
             <span className="font-mono-tech text-[9px] text-textDim whitespace-nowrap">
               {usage.used}/{usage.limit}
+              {!!usage.bonusMessages && (
+                <span className="ml-1.5 text-green">+{usage.bonusMessages} boost</span>
+              )}
               {usage.tier === 'free' && usage.used >= usage.limit * 0.8 && (
                 <a href="/pricing" className="ml-2 text-cyan hover:opacity-80 transition-opacity">↑ UPGRADE</a>
+              )}
+              {usage.tier !== 'free' && usage.used >= usage.limit && !usage.bonusMessages && (
+                <button onClick={handleBuyBoost} disabled={buyingBoost} className="ml-2 text-cyan hover:opacity-80 transition-opacity disabled:opacity-40">
+                  {buyingBoost ? 'LOADING...' : '+ BUY 100 MESSAGES'}
+                </button>
               )}
             </span>
             {messages.length > 0 && (

@@ -16,6 +16,11 @@ const PRICE_IDS: Record<string, Record<string, string>> = {
   agency: { monthly: 'price_1TprEYRxxgLHRQXXG5w9OL5P', annual: 'price_1TprEYRxxgLHRQXXAH2Yf13A' },
 }
 
+// Message Boost — one-time top-up of 100 messages, added to a persistent
+// bonus pool consumed only after the user's daily plan cap is hit.
+const BOOST_PRICE_ID = process.env.STRIPE_BOOST_PRICE_ID || 'price_boost_100_messages'
+const BOOST_MESSAGE_COUNT = 100
+
 function getPriceId(tier: string, billingCycle: string): string | undefined {
   if (billingCycle === 'lifetime') return PRICE_IDS[`${tier}_lifetime`]?.lifetime
   return PRICE_IDS[tier]?.[billingCycle]
@@ -27,13 +32,11 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { tier, billingCycle } = await request.json() as {
-      tier: 'solo' | 'studio' | 'agency'
-      billingCycle: 'monthly' | 'annual' | 'lifetime'
+    const body = await request.json() as {
+      tier?: 'solo' | 'studio' | 'agency'
+      billingCycle?: 'monthly' | 'annual' | 'lifetime'
+      product?: 'boost'
     }
-
-    const priceId = getPriceId(tier, billingCycle)
-    if (!priceId) return NextResponse.json({ error: 'Invalid tier or billing cycle' }, { status: 400 })
 
     const { data: profile } = await supabase.from('users').select('stripe_customer_id').eq('id', user.id).single()
 
@@ -48,6 +51,25 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    if (body.product === 'boost') {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        mode: 'payment',
+        line_items: [{ price: BOOST_PRICE_ID, quantity: 1 }],
+        metadata: { userId: user.id, product: 'boost', messageCount: String(BOOST_MESSAGE_COUNT) },
+        success_url: `${baseUrl}/agents?boosted=true`,
+        cancel_url: `${baseUrl}/agents`,
+      })
+      return NextResponse.json({ url: session.url })
+    }
+
+    const { tier, billingCycle } = body
+    if (!tier || !billingCycle) return NextResponse.json({ error: 'Missing tier or billing cycle' }, { status: 400 })
+
+    const priceId = getPriceId(tier, billingCycle)
+    if (!priceId) return NextResponse.json({ error: 'Invalid tier or billing cycle' }, { status: 400 })
+
     const isLifetime = billingCycle === 'lifetime'
 
     const session = await stripe.checkout.sessions.create({

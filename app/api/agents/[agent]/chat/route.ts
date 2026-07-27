@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { getAgent } from '@/lib/agents/config'
 import { canAgentAccess } from '@/lib/pricing'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, consumeBonusMessage } from '@/lib/rate-limit'
 import { CHAT_MODEL } from '@/lib/agents/models'
 import { Agent, Tier } from '@/types'
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const rateLimit = await checkRateLimit(supabase, user.id, tier)
     if (!rateLimit.allowed) {
-      return new Response(JSON.stringify({ error: 'rate_limited', message: `Daily message limit reached (${rateLimit.limit}/day on your plan). Upgrade for more messages or try again tomorrow.` }), { status: 429, headers: { 'Content-Type': 'application/json', 'X-RateLimit-Limit': String(rateLimit.limit), 'X-RateLimit-Remaining': '0' } })
+      return new Response(JSON.stringify({ error: 'rate_limited', message: `Daily message limit reached (${rateLimit.limit}/day on your plan). Buy a Message Boost or upgrade for more messages.`, canBoost: true }), { status: 429, headers: { 'Content-Type': 'application/json', 'X-RateLimit-Limit': String(rateLimit.limit), 'X-RateLimit-Remaining': '0' } })
     }
 
     const { message, history = [] } = await request.json()
@@ -101,6 +101,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           }
         }
         controller.close()
+
+        if (rateLimit.usingBonus) {
+          await consumeBonusMessage(supabase, user.id)
+        }
 
         await supabase.from('agent_chats').insert([
           { user_id: user.id, agent, role: 'user', content: message },

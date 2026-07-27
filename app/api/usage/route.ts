@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { dailyLimitFor } from '@/lib/rate-limit'
 import { Tier } from '@/types'
-
-const DAILY_LIMITS: Record<Tier, number> = {
-  free: 10,
-  solo: 50,
-  studio: 150,
-  agency: 500,
-}
 
 export async function GET() {
   try {
@@ -15,9 +9,9 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { data: profile } = await supabase.from('users').select('tier').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('users').select('tier, bonus_messages').eq('id', user.id).single()
     const tier = (profile?.tier || 'free') as Tier
-    const limit = DAILY_LIMITS[tier]
+    const limit = dailyLimitFor(tier)
     const today = new Date().toISOString().slice(0, 10)
 
     const { count } = await supabase
@@ -27,7 +21,12 @@ export async function GET() {
       .eq('role', 'user')
       .gte('created_at', `${today}T00:00:00.000Z`)
 
-    return NextResponse.json({ used: count ?? 0, limit, tier })
+    return NextResponse.json({
+      used: count ?? 0,
+      limit,
+      tier,
+      bonusMessages: profile?.bonus_messages ?? 0,
+    })
   } catch {
     return NextResponse.json({ error: 'Failed' }, { status: 500 })
   }

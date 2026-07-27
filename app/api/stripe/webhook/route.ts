@@ -65,8 +65,20 @@ export async function POST(request: NextRequest) {
       // ─── Checkout completed ────────────────────────────────────────────────
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        const { userId, tier, billingCycle } = session.metadata || {}
-        if (!userId || !tier) break
+        const { userId, tier, billingCycle, product, messageCount } = session.metadata || {}
+        if (!userId) break
+
+        if (product === 'boost') {
+          const amount = parseInt(messageCount || '100', 10)
+          const { data: current } = await supabase.from('users').select('bonus_messages').eq('id', userId).single()
+          await supabase.from('users').update({
+            bonus_messages: (current?.bonus_messages ?? 0) + amount,
+          }).eq('id', userId)
+          await logEvent(supabase, userId, `Message Boost purchased (+${amount})`, 'checkout.session.completed')
+          break
+        }
+
+        if (!tier) break
 
         await supabase.from('users').update({
           tier,
