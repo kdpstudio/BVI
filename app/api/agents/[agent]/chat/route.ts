@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAgent } from '@/lib/agents/config'
 import { canAgentAccess } from '@/lib/pricing'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { CHAT_MODEL } from '@/lib/agents/models'
 import { Agent, Tier } from '@/types'
 
 const anthropic = new Anthropic()
@@ -67,10 +68,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { message, history = [] } = await request.json()
     const contextString = await buildContext(agent, user.id, supabase)
 
+    // The agent persona is static and cacheable; the per-user financial context
+    // changes every request, so it must come after the cache breakpoint.
+    // Note: Haiku 4.5's minimum cacheable prefix is 4096 tokens — personas
+    // shorter than that won't actually cache (no error, just no discount).
     const stream = await anthropic.messages.stream({
-      model: 'claude-sonnet-4-20250514',
+      model: CHAT_MODEL,
       max_tokens: 1500,
-      system: agentConfig.systemPrompt + '\n\nUser context:\n' + contextString,
+      system: [
+        {
+          type: 'text',
+          text: agentConfig.systemPrompt,
+          cache_control: { type: 'ephemeral' },
+        },
+        { type: 'text', text: 'User context:\n' + contextString },
+      ],
       messages: [
         ...history.map((m: { role: string; content: string }) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
         { role: 'user', content: message }

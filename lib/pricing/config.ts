@@ -10,7 +10,8 @@ export const PRICING = {
     regular:  { monthly: 149, annual: 1199, lifetime: 1499 }
   },
   agency: {
-    founding: { monthly: 199, annual: 1599, lifetime: 2999, spots: 10 },
+    // Founding must always undercut regular — the £2999/£2499 pair was inverted.
+    founding: { monthly: 199, annual: 1599, lifetime: 1999, spots: 10 },
     regular:  { monthly: 249, annual: 1999, lifetime: 2499 }
   }
 }

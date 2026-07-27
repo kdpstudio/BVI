@@ -93,7 +93,7 @@ export default function CookiesPage() {
 
           <section>
             <h2 className="font-orbitron text-sm text-cyan mb-3 tracking-widest">4. HOW TO CONTROL COOKIES</h2>
-            <p>You can withdraw your consent for functional cookies at any time via the cookie banner (click "Cookie Settings" in the footer). Essential cookies cannot be disabled as the platform will not function without them.</p>
+            <p>You can withdraw your consent for functional cookies at any time via the cookie banner (click &quot;Cookie Settings&quot; in the footer). Essential cookies cannot be disabled as the platform will not function without them.</p>
             <p className="mt-2">You can also control cookies through your browser settings. Note that disabling all cookies will prevent you from logging in to BVI.</p>
           </section>
 

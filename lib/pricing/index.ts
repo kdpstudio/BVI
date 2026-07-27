@@ -71,7 +71,7 @@ export const PRICING_TIERS: PricingTier[] = [
     lifetimeGBP: 2499,
     foundingMonthlyGBP: 199,
     foundingAnnualGBP: 1599,
-    foundingLifetimeGBP: 2999,
+    foundingLifetimeGBP: 1999,
     foundingSpots: 10,
     transactions: 5000,
     users: 15,

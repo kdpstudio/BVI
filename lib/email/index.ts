@@ -1,7 +1,15 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = 'BVI <hello@blackvaultintelligence.com>'
+
+// Constructed lazily: `new Resend()` throws when RESEND_API_KEY is unset, and
+// at module scope that crashes `next build` during page-data collection —
+// even though no email is actually sent at build time.
+let client: Resend | null = null
+function resendClient(): Resend {
+  if (!client) client = new Resend(process.env.RESEND_API_KEY)
+  return client
+}
 
 export async function sendWeeklyReport(to: string, data: {
   name: string
@@ -11,7 +19,7 @@ export async function sendWeeklyReport(to: string, data: {
   currency: string
 }) {
   const fmt = (n: number) => `${data.currency === 'GBP' ? '£' : data.currency === 'USD' ? '$' : 'CA$'}${n.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-  return resend.emails.send({
+  return resendClient().emails.send({
     from: FROM,
     to,
     subject: `BVI Weekly Report — ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`,
@@ -47,7 +55,7 @@ export async function sendTaxReminder(to: string, data: {
   description: string
   daysLeft: number
 }) {
-  return resend.emails.send({
+  return resendClient().emails.send({
     from: FROM,
     to,
     subject: `⚠️ Tax Deadline in ${data.daysLeft} days — ${data.deadline}`,
@@ -70,7 +78,7 @@ export async function sendTaxReminder(to: string, data: {
 }
 
 export async function sendWelcomeEmail(to: string, name: string) {
-  return resend.emails.send({
+  return resendClient().emails.send({
     from: FROM,
     to,
     subject: 'Welcome to Black Vault Intelligence',

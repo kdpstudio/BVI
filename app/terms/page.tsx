@@ -21,7 +21,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="font-orbitron text-sm text-cyan mb-3 tracking-widest">1. WHO WE ARE</h2>
-            <p>Black Vault Intelligence Ltd ("BVI", "we", "us", "our") is a company registered in England and Wales. We operate the BVI platform at blackvaultintgelligence.com, an AI-powered back-office tool for freelancers and agencies.</p>
+            <p>Black Vault Intelligence Ltd (&quot;BVI&quot;, &quot;we&quot;, &quot;us&quot;, &quot;our&quot;) is a company registered in England and Wales. We operate the BVI platform at blackvaultintelligence.com, an AI-powered back-office tool for freelancers and agencies.</p>
             <p className="mt-2">By creating an account or using our services, you agree to these Terms. If you do not agree, do not use the platform.</p>
           </section>
 
@@ -61,7 +61,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="font-orbitron text-sm text-cyan mb-3 tracking-widest">5. FOUNDING MEMBER LIFETIME DEALS</h2>
-            <p>Founding member lifetime access grants permanent access to BVI at your purchased tier for the operational lifetime of the BVI platform. "Lifetime" refers to the lifetime of the platform, not the user.</p>
+            <p>Founding member lifetime access grants permanent access to BVI at your purchased tier for the operational lifetime of the BVI platform. &quot;Lifetime&quot; refers to the lifetime of the platform, not the user.</p>
             <p className="mt-2">In the unlikely event BVI ceases operations, we will provide at least 90 days notice to lifetime members. Founding member spots are limited and non-transferable.</p>
           </section>
 
@@ -91,7 +91,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="font-orbitron text-sm text-cyan mb-3 tracking-widest">9. LIMITATION OF LIABILITY</h2>
-            <p>To the maximum extent permitted by law, BVI's total liability to you for any claim arising from use of the platform is limited to the amount you paid us in the 12 months preceding the claim.</p>
+            <p>To the maximum extent permitted by law, BVI&apos;s total liability to you for any claim arising from use of the platform is limited to the amount you paid us in the 12 months preceding the claim.</p>
             <p className="mt-2">We are not liable for any indirect, consequential, or financial losses arising from reliance on AI-generated outputs, data loss, or service interruption.</p>
             <p className="mt-2">Nothing in these Terms limits our liability for death, personal injury caused by negligence, or fraud.</p>
           </section>

@@ -46,12 +46,10 @@ export default function SignupPage() {
     if (ref) setReferralCode(ref)
   }, [])
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupForm>({
+  const { register, handleSubmit, formState: { errors } } = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
     defaultValues: { country: 'UK' },
   })
-
-  const selectedCountry = watch('country')
 
   async function onSubmit(data: SignupForm) {
     setLoading(true)

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { WeatherData, NewsItem } from '@/types'
 import { getAgent } from '@/lib/agents/config'
+import { BRIEF_MODEL } from '@/lib/agents/models'
 
 const anthropic = new Anthropic()
 
@@ -21,7 +22,7 @@ export async function generateAriaBrief(ctx: BriefContext): Promise<string> {
 
   try {
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: BRIEF_MODEL,
       max_tokens: 200,
       system: aria.systemPrompt,
       messages: [{

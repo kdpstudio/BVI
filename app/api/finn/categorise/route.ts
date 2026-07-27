@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
+import { CATEGORISE_MODEL } from '@/lib/agents/models'
 
 const anthropic = new Anthropic()
 
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: CATEGORISE_MODEL,
         max_tokens: 4000,
         system: `You are FINN, an AI CFO. Categorise transactions and return ONLY a JSON array with no other text. For each transaction provide: category (one of: Revenue, Software & Subscriptions, Marketing & Ads, Travel & Transport, Equipment & Hardware, Meals & Entertainment, Professional Services, Utilities & Office, Tax & Accounting, Salaries & Contractors, Other), type (income or expense), finn_note (brief observation if notable, else null), is_flagged (true if unusual amount or suspicious description).`,
         messages: [{

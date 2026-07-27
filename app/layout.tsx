@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Orbitron, Rajdhani, Share_Tech_Mono } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
@@ -47,13 +47,17 @@ export const metadata: Metadata = {
   },
   keywords: ['freelancer bookkeeping', 'AI accountant', 'tax estimates UK', 'freelance back office', 'AI CFO', 'self-employed tax', 'invoice management'],
   robots: { index: true, follow: true },
-  themeColor: '#00c8ff',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'BVI',
   },
+}
+
+// themeColor belongs in the viewport export in Next 14, not metadata.
+export const viewport: Viewport = {
+  themeColor: '#00c8ff',
 }
 
 export default function RootLayout({

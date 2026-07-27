@@ -35,7 +35,7 @@ export default function OgImage() {
         ))}
 
         <div style={{ color: 'rgba(0,200,255,0.5)', fontSize: 14, letterSpacing: 6, marginBottom: 24 }}>
-          // PRICING
+          {'// PRICING'}
         </div>
 
         <div style={{

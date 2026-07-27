@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { MetricCard } from '@/components/ui/metric-card'
-import { CyberButton } from '@/components/ui/cyber-button'
 import { AlertTriangle, Calendar, FileText } from 'lucide-react'
 import { TaxResult } from '@/lib/tax/calculator'
 import Link from 'next/link'

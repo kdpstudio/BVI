@@ -21,7 +21,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-orbitron text-sm text-cyan mb-3 tracking-widest">1. WHO WE ARE</h2>
-            <p>Black Vault Intelligence Ltd ("BVI") is the data controller for personal data collected through this platform. We are registered with the Information Commissioner's Office (ICO) in the UK.</p>
+            <p>Black Vault Intelligence Ltd (&quot;BVI&quot;) is the data controller for personal data collected through this platform. We are registered with the Information Commissioner&apos;s Office (ICO) in the UK.</p>
             <p className="mt-2">Contact: <span className="text-cyan">privacy@blackvaultintgelligence.com</span></p>
             <p className="mt-2">BVI currently operates in the United Kingdom only. US and Canadian services are coming soon.</p>
           </section>
